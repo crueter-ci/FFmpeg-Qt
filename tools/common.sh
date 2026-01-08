@@ -9,8 +9,16 @@
 # but make android manual specification
 ROOTDIR="$PWD"
 : "${OUT_DIR:=$PWD/out}"
-: "${PLATFORM:?-- You must supply the PLATFORM environment variable.}"
 : "${MACOSX_DEPLOYMENT_TARGET:=11.0}"
+
+case "$(uname -s)" in
+	Linux) : "${PLATFORM:=linux}" ;;
+	Darwin) : "${PLATFORM:=macos}" ;;
+	FreeBSD) : "${PLATFORM:=freebsd}" ;;
+	OpenBSD) : "${PLATFORM:=openbsd}" ;;
+	SunOS) : "${PLATFORM:=solaris}" ;;
+	*) : "${PLATFORM:?-- You must supply the PLATFORM environment variable.}" ;;
+esac
 
 ## Command Checks ##
 
@@ -97,12 +105,6 @@ num_procs() {
 }
 
 ## Packaging ##
-copy_cmake() {
-	echo "-- Copying CMake artifacts..."
-
-    cp "$ROOTDIR"/CMakeLists.txt "$OUT_DIR"
-}
-
 package() {
     echo "-- Packaging..."
     mkdir -p "$ROOTDIR/artifacts"

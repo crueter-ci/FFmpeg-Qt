@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -e
-
 # shellcheck disable=SC1091
+
+set -e
 
 . tools/common.sh
 
@@ -29,6 +29,9 @@ if android; then
 fi
 
 ## Platform Stuff ##
+
+. tools/openssl.sh
+download_openssl
 
 msvc() {
 	[ "$PLATFORM" = windows ]
@@ -63,7 +66,6 @@ MEDIACODEC_ACCEL=(--enable-mediacodec
 				  --enable-jni
 				  --enable-decoder={h264,vp8,vp9}_mediacodec)
 VIDEOTOOLBOX_ACCEL=(--enable-videotoolbox --enable-hwaccel={h264,vp9}_videotoolbox)
-AMF_ACCEL=(--enable-amf --enable-decoder={h264,vp9}_amf)
 
 case "$PLATFORM" in
 	linux)
@@ -71,7 +73,6 @@ case "$PLATFORM" in
 			"${VULKAN_ACCEL[@]}"
 			"${VAAPI_ACCEL[@]}"
 			"${NVDEC_ACCEL[@]}"
-			"${AMF_ACCEL[@]}"
         )
 		;;
 	freebsd)
@@ -95,7 +96,6 @@ case "$PLATFORM" in
 			"${MEDIACODEC_ACCEL[@]}"
 
 			--extra-ldflags="-Wl,-z,max-page-size=16384,--hash-style=both"
-			--strip=llvm-strip
 
 			--enable-cross-compile
 			--target-os=android
@@ -132,7 +132,6 @@ case "$PLATFORM" in
 			"${VULKAN_ACCEL[@]}"
 			"${DXVA_ACCEL[@]}"
 			"${D3D_ACCEL[@]}"
-			"${AMF_ACCEL[@]}"
 		)
 
 		[ "$ARCH" = amd64 ] && PLATFORM_FLAGS+=("${NVDEC_ACCEL[@]}")
@@ -153,17 +152,9 @@ configure() {
 	msvc && [ "$ARCH" = amd64 ] && export PKG_CONFIG_PATH="$FFNVCODEC_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
     echo "-- Package config path: $PKG_CONFIG_PATH"
 
-	msvc && [ "$ARCH" = amd64 ] && pkg-config --cflags ffnvcodec
+	export PKG_CONFIG_PATH="$OPENSSL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 
-	if ! msvc && ! msys; then
-		CONFIGURE_FLAGS+=(--enable-shared --enable-static)
-	else
-		if [ "$STATIC" = "true" ]; then
-			CONFIGURE_FLAGS+=(--enable-static)
-		else
-			CONFIGURE_FLAGS+=(--enable-shared)
-		fi
-	fi
+	msvc && [ "$ARCH" = amd64 ] && pkg-config --cflags ffnvcodec
 
 	# FFmpeg's x86_64 assembly on Android sucks
 	# Remember folks: this is why you use C :)
@@ -171,21 +162,17 @@ configure() {
 
 	# shellcheck disable=SC2054
 	CONFIGURE_FLAGS+=(
-		--disable-avdevice
-        --disable-avformat
         --disable-doc
-        --disable-everything
-        --disable-ffmpeg
-        --disable-ffprobe
-        --disable-network
+        --disable-programs
         --disable-swresample
-        --enable-decoder=h264
-        --enable-decoder=vp8
-        --enable-decoder=vp9
+		--enable-network
+		--enable-openssl
 		--enable-static
-        --enable-filter=yadif,scale
+		--disable-shared
 		--enable-small
 		--enable-pic
+		--enable-protocol=file,http,https,tcp,udp,rtp
+		--pkg-config-flags="--static"
         --prefix=/
         "${PLATFORM_FLAGS[@]}"
 	)
@@ -202,16 +189,6 @@ build() {
     $MAKE -j"$(num_procs)"
 }
 
-strip_libs() {
-	echo "-- Stripping shared libraries..."
-
-	case "$PLATFORM" in
-		windows) ;;
-		android) find "$OUT_DIR" -name "*.so" -exec llvm-strip --strip-all {} \; ;;
-		*) find "$OUT_DIR" -name "*.$SHARED_SUFFIX" -exec strip {} \; ;;
-	esac
-}
-
 ## Packaging ##
 copy_build_artifacts() {
     echo "-- Copying artifacts..."
@@ -224,10 +201,10 @@ copy_build_artifacts() {
 		echo
 	    $MAKE install-headers INSTALL="/usr/bin/install -C" DESTDIR="${OUT_DIR}"
 	else
-    	$MAKE install-libs DESTDIR="${OUT_DIR}"
-	    $MAKE install-headers DESTDIR="${OUT_DIR}"
+    	$MAKE install DESTDIR="${OUT_DIR}"
 	fi
-    rm -rf "$OUT_DIR"/{share,lib/pkgconfig}
+
+	cp -r "$OPENSSL_DIR"/* "$OUT_DIR"
 }
 
 
@@ -242,23 +219,13 @@ extract
 
 ## Configure ##
 cd "$DIRECTORY"
-STATIC=true
 configure
 
 ## Build ##
 build
 copy_build_artifacts
 
-# Windows needs separate build step for shared
-if msvc || msys; then
-	STATIC=false
-	configure
-	build
-	copy_build_artifacts
-fi
-
 ## Package ##
-copy_cmake
 package
 
 echo "-- Done! Artifacts are in $ROOTDIR/artifacts, raw lib/include data is in $OUT_DIR"
