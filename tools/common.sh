@@ -48,7 +48,7 @@ download() {
 		curl -L "$DOWNLOAD_URL" -o "$ARTIFACT" && return
 		TRIES=$((TRIES + 1))
 		echo "-- Download failed, trying again in 5 seconds..."
-		sleep 0
+		sleep 5
 	done
 
 	echo "-- Download failed after 30 tries, aborting"

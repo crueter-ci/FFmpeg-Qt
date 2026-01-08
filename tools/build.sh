@@ -30,8 +30,7 @@ fi
 
 ## Platform Stuff ##
 
-. tools/openssl.sh
-download_openssl
+. deps/openssl.sh
 
 msvc() {
 	[ "$PLATFORM" = windows ]
@@ -174,7 +173,7 @@ configure() {
 	CONFIGURE_FLAGS+=(
         --disable-doc
         --disable-programs
-        --disable-swresample
+        --enable-swresample
 		--enable-network
 		--enable-openssl
 		--enable-static
