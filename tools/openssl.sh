@@ -22,5 +22,5 @@ download_openssl() {
 	done
 
 	echo "-- Extracted contents:"
-	find "$OPENSSL_DIR" -type f -printf "-- * %p\n"
+	find "$OPENSSL_DIR" -type f -exec echo "-- * {}" \;
 }
