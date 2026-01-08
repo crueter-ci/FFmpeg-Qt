@@ -15,6 +15,7 @@ if [ ! -d "$_dir" ]; then
 	mkdir -p "$_dir"
 	$TAR xf "$_artifact" -C "$_dir"
 	rm -f "$_dir"/CMakeLists.txt
+	find "$_dir" -name "*.dll*" -type -f -exec rm {} \;
 fi
 
 find "$_dir" -name "*.pc" | while read -r pc; do

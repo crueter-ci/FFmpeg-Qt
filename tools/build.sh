@@ -213,7 +213,20 @@ copy_build_artifacts() {
     	$MAKE install DESTDIR="${OUT_DIR}"
 	fi
 
-	cp -r "$OPENSSL_DIR"/* "$OUT_DIR"
+    cd "$OUT_DIR/lib"
+
+    # Qt expects a slightly different naming scheme here
+    if msvc; then
+        find . -maxdepth 1 -name '*.lib' -type f | while read -r lib; do
+            _newname="lib$(basename -- lib)"
+            mv "$lib" "$_newname"
+        done
+    elif msys; then
+        find . -maxdepth 1 -name '*.a' -type f | while read -r lib; do
+            _newname="${lib%.*}"
+            mv "$lib" "$_newname.lib"
+        done
+    fi
 }
 
 
