@@ -28,7 +28,7 @@ must_install() {
 	done
 }
 
-must_install curl zstd tar
+must_install curl zstd
 
 case "$ARTIFACT" in
 	*.zip) must_install unzip ;;
@@ -62,7 +62,7 @@ extract() {
 
 	case "$ARTIFACT" in
 		*.zip) unzip "$ROOTDIR/$ARTIFACT" >/dev/null ;;
-		*.tar.*) tar xf "$ROOTDIR/$ARTIFACT" >/dev/null ;;
+		*.tar.*) $TAR xf "$ROOTDIR/$ARTIFACT" >/dev/null ;;
 		*.7z) 7z x "$ROOTDIR/$ARTIFACT" >/dev/null ;;
 	esac
 
@@ -112,7 +112,7 @@ package() {
 	TARBALL=$FILENAME-$PLATFORM-$ARCH-$VERSION.tar
 
     cd "$OUT_DIR"
-    tar cf "$ROOTDIR/artifacts/$TARBALL" ./*
+    $TAR cf "$ROOTDIR/artifacts/$TARBALL" ./*
 
     cd "$ROOTDIR/artifacts"
     zstd -10 "$TARBALL"
@@ -127,6 +127,7 @@ package() {
 SHARED_SUFFIX=so
 STATIC_SUFFIX=a
 MAKE="make"
+TAR=tar
 CC=gcc
 CXX=g++
 
@@ -136,14 +137,17 @@ case "$PLATFORM" in
 		MAKE="gmake"
 		CC=gcc15
 		CXX=g++15
+		TAR=gtar
 		;;
 	openbsd)
 		MAKE="gmake"
 		CC=egcc
 		CXX=eg++
+		TAR=gtar
 		;;
 	solaris)
 		MAKE="gmake"
+		TAR=gtar
 		;;
 	android)
 		CC=clang
@@ -174,13 +178,14 @@ case "$PLATFORM" in
 		;;
 esac
 
-must_install "$MAKE"
+must_install "$MAKE" "$TAR"
 
 export SHARED_SUFFIX
 export STATIC_SUFFIX
 export CC
 export CXX
 export MAKE
+export TAR
 
 android_paths() {
 	export ANDROID_NDK_HOME="$ANDROID_NDK_ROOT"
