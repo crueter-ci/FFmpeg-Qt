@@ -7,6 +7,7 @@ _download="https://github.com/crueter-ci/OpenSSL/releases/download/v$OPENSSL_VER
 _artifact="openssl-$PLATFORM-$ARCH-$OPENSSL_VERSION.tar.zst"
 
 download_openssl() {
+	echo "-- Downloading OpenSSL..."
 	if [ ! -d "$OPENSSL_DIR" ]; then
 		[ -f "$_artifact" ] || curl -L "$_download" -o "$_artifact"
 		mkdir -p "$OPENSSL_DIR"
@@ -15,7 +16,11 @@ download_openssl() {
 	fi
 
 	find "$OPENSSL_DIR" -name "*.pc" | while read -r pc; do
+		echo "-- * Patching pc file $pc"
 		sed "s|^prefix=\/.*$|prefix=$OPENSSL_DIR|g" "$pc" > "$pc".tmp
 		mv "$pc".tmp "$pc"
 	done
+
+	echo "-- Extracted contents:"
+	find "$OPENSSL_DIR" -type f -printf "-- * %p\n"
 }
