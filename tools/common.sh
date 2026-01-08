@@ -70,8 +70,10 @@ extract() {
 	pushd "$DIRECTORY"
 
 	find . -type f -name "*.c" | while read -r file; do
-		sed 's/if HAVE_UNISTD_H/if HAVE_UNISTD_H || defined(__APPLE__)/' "$file" > "$file".bak
-		mv "$file".bak "$file"
+		sed 's/if HAVE_UNISTD_H/if HAVE_UNISTD_H || defined(__APPLE__)/' "$file"   > "$file".1
+		sed 's/if HAVE_DIRENT_H/if HAVE_DIRENT_H || defined(__APPLE__)/' "$file".1 > "$file".2
+		sed 's/if HAVE_IO_H/if HAVE_IO_H || defined(__APPLE__)/'         "$file".2 > "$file".3
+		mv "$file".3 "$file"
 	done
 
 	popd
