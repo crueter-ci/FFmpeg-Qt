@@ -69,7 +69,7 @@ extract() {
 	# FUCK YOU APPLE
 	pushd "$DIRECTORY"
 
-	find libavutil libavformat libavcodec -name "*.c" | while read -r file; do
+	find . -type f -name "*.c" | while read -r file; do
 		sed 's/if HAVE_UNISTD_H/if HAVE_UNISTD_H || defined(__APPLE__)/' "$file" > "$file".bak
 		mv "$file".bak "$file"
 	done
