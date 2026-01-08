@@ -5,6 +5,7 @@ artifacts
 /*.zip
 changelog.md
 /ffmpeg-kit*
+/openssl*
 
 *.exe
 nv-codec-headers
