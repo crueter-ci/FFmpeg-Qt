@@ -199,3 +199,47 @@ android_paths() {
         fi
     done
 }
+
+## Platform Utility Functions ##
+
+linux() {
+	[ "$PLATFORM" = linux ]
+}
+
+macos() {
+	[ "$PLATFORM" = macos ]
+}
+
+msvc() {
+	[ "$PLATFORM" = windows ]
+}
+
+mingw() {
+	[ "$PLATFORM" = mingw ]
+}
+
+windows() {
+	msvc || mingw
+}
+
+openbsd() {
+	[ "$PLATFORM" = openbsd ]
+}
+
+freebsd() {
+	[ "$PLATFORM" = freebsd ]
+}
+
+solaris() {
+	[ "$PLATFORM" = solaris ]
+}
+
+# get me a unix with no macOS
+# "UNIX with no macOS? Ay Tony, get me a pizza with nuthin'!"
+unix() {
+	linux || freebsd || openbsd || solaris
+}
+
+android() {
+	[ "$PLATFORM" = android ]
+}

@@ -6,6 +6,8 @@ artifacts
 changelog.md
 /ffmpeg-kit*
 /openssl*
+/libdrm
+/libva
 
 *.exe
 nv-codec-headers

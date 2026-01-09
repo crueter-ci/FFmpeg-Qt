@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # shellcheck disable=SC1091
 
@@ -7,10 +7,6 @@ set -e
 . tools/common.sh
 
 ## Buildtime/Input Variables ##
-
-android() {
-	[ "$PLATFORM" = android ]
-}
 
 DEFAULT_ARCH=amd64
 if android; then
@@ -23,6 +19,8 @@ fi
 : "${ARCH:=$DEFAULT_ARCH}"
 : "${BUILD_DIR:=build}"
 
+mkdir -p "$BUILD_DIR"
+
 if android; then
 	CC="${ARCH}"-linux-android"${ANDROID_API}"-clang
 	CXX="${ARCH}"-linux-android"${ANDROID_API}"-clang++
@@ -31,14 +29,7 @@ fi
 ## Platform Stuff ##
 
 . deps/openssl.sh
-
-msvc() {
-	[ "$PLATFORM" = windows ]
-}
-
-msys() {
-	[ "$PLATFORM" = mingw ]
-}
+! unix  || . deps/libva.sh
 
 if msvc; then
  	# shellcheck disable=SC2154
@@ -156,12 +147,23 @@ configure() {
         exit 1
     fi
 
+	printf -- "-- * OpenSSL pkgconfig: "
     if ! pkg-config --cflags --libs openssl; then
+		echo "Not found"
         echo "-- ! OpenSSL pkgconfig failed."
         exit 1
     fi
 
-    echo "-- Package config path: $PKG_CONFIG_PATH"
+	# libva
+	if unix; then
+		export PKG_CONFIG_PATH="$LIBVA_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
+		printf -- "-- * libva pkg-config: "
+		pkg-config --cflags --libs libva
+		printf -- "-- * libva-drm pkg-config: "
+		pkg-config --cflags --libs libva-drm
+	fi
+
+    echo "-- * Package config path: $PKG_CONFIG_PATH"
 
 	msvc && [ "$ARCH" = amd64 ] && pkg-config --cflags ffnvcodec
 
@@ -186,9 +188,9 @@ configure() {
         "${PLATFORM_FLAGS[@]}"
 	)
 
-	echo "-- Configure flags: ${CONFIGURE_FLAGS[*]}"
+	echo "-- * Configure flags: ${CONFIGURE_FLAGS[*]}"
 
-	./configure "${CONFIGURE_FLAGS[@]}"
+	./configure "${CONFIGURE_FLAGS[@]}" --prefix="$OUT_DIR"
 }
 
 build() {
@@ -208,25 +210,10 @@ copy_build_artifacts() {
 		find . -name "*.a" -exec cp {} "$OUT_DIR"/lib \;
 		ls "$OUT_DIR"/lib
 		echo
-	    $MAKE install-headers INSTALL="/usr/bin/install -C" DESTDIR="${OUT_DIR}"
+	    $MAKE install-headers INSTALL="/usr/bin/install -C"
 	else
-    	$MAKE install DESTDIR="${OUT_DIR}"
+    	$MAKE install
 	fi
-
-    cd "$OUT_DIR/lib"
-
-    # Qt expects a slightly different naming scheme here
-    if msvc; then
-        find . -maxdepth 1 -name '*.lib' -type f | while read -r lib; do
-            _newname="lib$(basename -- lib)"
-            mv "$lib" "$_newname"
-        done
-    elif msys; then
-        find . -maxdepth 1 -name '*.a' -type f | while read -r lib; do
-            _newname="${lib%.*}"
-            mv "$lib" "$_newname.lib"
-        done
-    fi
 }
 
 
