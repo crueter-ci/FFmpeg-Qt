@@ -2,7 +2,6 @@
 
 pacman -Syu --needed --noconfirm \
     nasm \
-    yasm \
     cmake \
     base-devel \
     git \
@@ -10,5 +9,5 @@ pacman -Syu --needed --noconfirm \
     gcc \
     ffnvcodec-headers \
     vulkan-headers \
-	amf-headers \
+	libdrm \
 	ninja
