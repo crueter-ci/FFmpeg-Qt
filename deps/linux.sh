@@ -10,4 +10,5 @@ sudo apt-get install -y \
     unzip \
     gcc \
     libdrm-dev \
-    ninja-build
+    ninja-build \
+	libx11-xcb-dev

@@ -32,11 +32,6 @@ need_vk() {
 	! android && ! macos
 }
 
-. deps/openssl.sh
-! unix  || . deps/libva.sh
-! need_vk || . deps/vulkan.sh
-! need_vk || . deps/nvcodec.sh
-
 if msvc; then
  	# shellcheck disable=SC2154
 	# gets cl.exe and link.exe into the PATH
@@ -46,6 +41,11 @@ if msvc; then
 	ls "$CLPATH"
 	cl.exe
 fi
+
+. deps/openssl.sh
+! unix  || . deps/libva.sh
+! need_vk || . deps/vulkan.sh
+! need_vk || . deps/nvcodec.sh
 
 # shellcheck disable=SC1091
 msvc && . windows/prepare.sh
@@ -164,6 +164,7 @@ configure() {
 		pkg-config --cflags --libs vulkan
 		printf -- "-- * ffnvcodec pkg-config: "
 		pkg-config --cflags --libs ffnvcodec
+		CONFIGURE_FLAGS+=("${VULKAN_ACCEL[@]}" "${NVDEC_ACCEL[@]}")
 	fi
 
     echo "-- * Package config path: $PKG_CONFIG_PATH"
@@ -171,8 +172,6 @@ configure() {
 	# FFmpeg's x86_64 assembly on Android sucks
 	# Remember folks: this is why you use C :)
 	android && [ "$ARCH" = "x86_64" ] && CONFIGURE_FLAGS+=(--disable-asm)
-
-	macos || CONFIGURE_FLAGS+=("${VULKAN_ACCEL[@]}" "${NVDEC_ACCEL[@]}")
 
 	# shellcheck disable=SC2054
 	CONFIGURE_FLAGS+=(
