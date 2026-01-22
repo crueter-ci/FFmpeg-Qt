@@ -28,10 +28,14 @@ fi
 
 ## Platform Stuff ##
 
+need_vk() {
+	! android && ! macos
+}
+
 . deps/openssl.sh
 ! unix  || . deps/libva.sh
-macos   || . deps/vulkan.sh
-macos   || . deps/nvcodec.sh
+! need_vk || . deps/vulkan.sh
+! need_vk || . deps/nvcodec.sh
 
 if msvc; then
  	# shellcheck disable=SC2154
@@ -154,7 +158,7 @@ configure() {
 	fi
 
 	# vk + nvcodec
-	if ! macos; then
+	if need_vk; then
 		export PKG_CONFIG_PATH="$FFNVCODEC_HEADERS_DIR/lib/pkgconfig:$VULKAN_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 		printf -- "-- * vulkan pkg-config: "
 		pkg-config --cflags --libs vulkan
