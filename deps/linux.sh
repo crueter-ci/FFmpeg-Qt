@@ -10,6 +10,6 @@ sudo apt-get install -y \
     unzip \
     gcc \
     libffmpeg-nvenc-dev \
-    vulkan-headers \
+    libvulkan-dev \
     libdrm-dev \
     ninja-build
