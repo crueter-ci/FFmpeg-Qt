@@ -30,6 +30,8 @@ fi
 
 . deps/openssl.sh
 ! unix  || . deps/libva.sh
+macos   || . deps/vulkan.sh
+macos   || . deps/nvcodec.sh
 
 if msvc; then
  	# shellcheck disable=SC2154
@@ -60,23 +62,17 @@ VIDEOTOOLBOX_ACCEL=(--enable-videotoolbox --enable-hwaccel={h264,vp9}_videotoolb
 case "$PLATFORM" in
 	linux)
 		PLATFORM_FLAGS=(
-			"${VULKAN_ACCEL[@]}"
 			"${VAAPI_ACCEL[@]}"
-			"${NVDEC_ACCEL[@]}"
 			--extra-cflags="-Og -g -fno-lto -fno-strict-aliasing -fno-omit-frame-pointer"
         )
 		;;
 	freebsd)
 		PLATFORM_FLAGS=(
-			"${VULKAN_ACCEL[@]}"
 			"${VAAPI_ACCEL[@]}"
-			"${NVDEC_ACCEL[@]}"
         )
 		;;
 	openbsd)
 		PLATFORM_FLAGS=(
-			"${VULKAN_ACCEL[@]}"
-
 			--extra-cflags="-I/usr/local/include"
         )
 		;;
@@ -105,7 +101,6 @@ case "$PLATFORM" in
 		;;
 	windows)
 		PLATFORM_FLAGS=(
-			"${VULKAN_ACCEL[@]}"
 			"${DXVA_ACCEL[@]}"
 			"${D3D_ACCEL[@]}"
 
@@ -116,16 +111,12 @@ case "$PLATFORM" in
 		)
 
 		PLATFORM_FLAGS+=(--extra-cflags="-I\"$FFNVCODEC_DIR/include\"")
-		[ "$ARCH" = amd64 ] && PLATFORM_FLAGS+=("${NVDEC_ACCEL[@]}")
 		;;
 	mingw)
 		PLATFORM_FLAGS=(
-			"${VULKAN_ACCEL[@]}"
 			"${DXVA_ACCEL[@]}"
 			"${D3D_ACCEL[@]}"
 		)
-
-		[ "$ARCH" = amd64 ] && PLATFORM_FLAGS+=("${NVDEC_ACCEL[@]}")
 		;;
 esac
 
@@ -160,17 +151,24 @@ configure() {
 		export PKG_CONFIG_PATH="$LIBVA_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 		printf -- "-- * libva pkg-config: "
 		pkg-config --cflags --libs libva
-		printf -- "-- * libva-drm pkg-config: "
-		pkg-config --cflags --libs libva-drm
+	fi
+
+	# vk + nvcodec
+	if ! macos; then
+		export PKG_CONFIG_PATH="$FFNVCODEC_HEADERS_DIR/lib/pkgconfig:$VULKAN_HEADERS_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
+		printf -- "-- * vulkan pkg-config: "
+		pkg-config --cflags --libs vulkan
+		printf -- "-- * ffnvcodec pkg-config: "
+		pkg-config --cflags --libs ffnvcodec
 	fi
 
     echo "-- * Package config path: $PKG_CONFIG_PATH"
 
-	msvc && [ "$ARCH" = amd64 ] && pkg-config --cflags ffnvcodec
-
 	# FFmpeg's x86_64 assembly on Android sucks
 	# Remember folks: this is why you use C :)
 	android && [ "$ARCH" = "x86_64" ] && CONFIGURE_FLAGS+=(--disable-asm)
+
+	macos || CONFIGURE_FLAGS+=("${VULKAN_ACCEL[@]}" "${NVDEC_ACCEL[@]}")
 
 	# shellcheck disable=SC2054
 	CONFIGURE_FLAGS+=(
@@ -185,6 +183,7 @@ configure() {
 		--enable-protocol=file,http,https,tcp,udp,rtp
 		--pkg-config-flags="--static"
         --prefix=/
+		"${VULKAN_ACCEL[@]}"
         "${PLATFORM_FLAGS[@]}"
 	)
 

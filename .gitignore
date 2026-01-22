@@ -6,8 +6,11 @@ artifacts
 changelog.md
 /ffmpeg-kit*
 /openssl*
+
+# TODO: add back libdrm stuff
 /libdrm
 /libva
+/vulkan-headers
+/ffnvcodec-headers
 
 *.exe
-nv-codec-headers
