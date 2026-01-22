@@ -63,7 +63,7 @@ case "$PLATFORM" in
 			"${VULKAN_ACCEL[@]}"
 			"${VAAPI_ACCEL[@]}"
 			"${NVDEC_ACCEL[@]}"
-			--extra-cflags="-Og -g"
+			--extra-cflags="-Og -g -fno-lto -fno-strict-aliasing -fno-omit-frame-pointer"
         )
 		;;
 	freebsd)

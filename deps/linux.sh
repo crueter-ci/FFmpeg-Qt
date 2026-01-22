@@ -1,13 +1,15 @@
 #!/bin/sh -ex
 
-pacman -Syu --needed --noconfirm \
+sudo apt-get update
+
+sudo apt-get install -y \
     nasm \
     cmake \
-    base-devel \
+    build-essential \
     git \
     unzip \
     gcc \
-    ffnvcodec-headers \
+    libffmpeg-nvenc-dev \
     vulkan-headers \
-	libdrm \
-	ninja
+    libdrm-dev \
+    ninja-build
