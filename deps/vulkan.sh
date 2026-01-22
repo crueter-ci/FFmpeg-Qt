@@ -14,12 +14,10 @@ if [ ! -d "$_dir/include" ]; then
     [ -d "$_name" ] || git clone "$_url" --depth 1
     cd "$_name"
 
-    mkdir -p build
-    cd build
-    cmake .. -DCMAKE_INSTALL_PREFIX="$_dir"
+    cmake -S . -B build -G Ninja -DCMAKE_INSTALL_PREFIX="$_dir"
 
-    make -j"$(nproc)"
-    make install
+    cmake --build build
+    cmake --build build --install
 
     cd "$ROOTDIR"
 fi
@@ -35,12 +33,10 @@ if [ ! -f "$_dir/lib/libvulkan.so.1" ]; then
     [ -d "$_name" ] || git clone "$_url" --depth 1
     cd "$_name"
 
-    mkdir -p build
-    cd build
-    cmake .. -DCMAKE_INSTALL_PREFIX="$_dir" -DVULKAN_HEADERS_INSTALL_DIR="$_dir"
+    cmake -S . -B build -G Ninja -DCMAKE_INSTALL_PREFIX="$_dir" -DVULKAN_HEADERS_INSTALL_DIR="$_dir"
 
-    make -j"$(nproc)"
-    make install
+    cmake --build build
+    cmake --build build --install
 
     cd "$ROOTDIR"
 fi

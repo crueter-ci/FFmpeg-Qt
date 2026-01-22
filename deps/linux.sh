@@ -11,4 +11,5 @@ sudo apt-get install -y \
     gcc \
     libdrm-dev \
     ninja-build \
-	libx11-xcb-dev
+	libx11-xcb-dev \
+	libxrandr-dev
