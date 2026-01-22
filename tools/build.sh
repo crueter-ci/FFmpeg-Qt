@@ -36,10 +36,16 @@ if msvc; then
  	# shellcheck disable=SC2154
 	# gets cl.exe and link.exe into the PATH
 	CLPATH=$(cygpath -u "$VCToolsInstallDir\\bin\\Host${VSCMD_ARG_HOST_ARCH}\\${VSCMD_ARG_TGT_ARCH}")
+	export PATH="$CMAKE_PATH:$NINJA_PATH:$PATH"
  	export PATH="$CLPATH:$PATH"
-	echo "$CLPATH"
-	ls "$CLPATH"
-	cl.exe
+
+	echo "MSVC path: $CLPATH"
+	echo "CMake path: $CMAKE_PATH"
+	echo "Ninja: $NINJA_PATH"
+
+	cl
+	cmake
+	ninja
 fi
 
 . deps/openssl.sh
