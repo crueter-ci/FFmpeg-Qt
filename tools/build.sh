@@ -164,7 +164,11 @@ configure() {
 		pkg-config --cflags --libs vulkan
 		printf -- "-- * ffnvcodec pkg-config: "
 		pkg-config --cflags --libs ffnvcodec
-		CONFIGURE_FLAGS+=("${VULKAN_ACCEL[@]}" "${NVDEC_ACCEL[@]}")
+		CONFIGURE_FLAGS+=(
+			"${VULKAN_ACCEL[@]}"
+			"${NVDEC_ACCEL[@]}"
+			--extra-cflags="-I$VULKAN_DIR/include"
+		)
 	fi
 
     echo "-- * Package config path: $PKG_CONFIG_PATH"
