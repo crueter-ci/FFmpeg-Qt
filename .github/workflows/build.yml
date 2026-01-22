@@ -45,7 +45,7 @@ jobs:
           msystem: ${{ matrix.os.msystem }}
           update: true
           install: >-
-            git make unzip pkgconf diffutils cmake
+            git make unzip pkgconf diffutils cmake ninja
 
       - name: Setup MSYS2 environment
         uses: msys2/setup-msys2@v2
@@ -56,9 +56,7 @@ jobs:
           install: >-
             git make unzip pkgconf diffutils
           pacboy: >-
-            toolchain:p vulkan-devel:p pkg-config:p
-            nasm:p ffnvcodec-headers:p amf-headers:p
-            cmake:p
+            toolchain:p pkg-config:p nasm:p cmake:p ninja:p
 
       - name: Build (MSYS)
         if: matrix.platform == 'mingw'
