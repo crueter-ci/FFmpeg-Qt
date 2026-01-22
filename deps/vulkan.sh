@@ -7,6 +7,12 @@ BUILD_DIR="${BUILD_DIR:-build}"
 _url="https://github.com/KhronosGroup/Vulkan-Headers.git"
 _name="Vulkan-Headers"
 
+if msvc; then
+	_generator="Visual Studio 17 2022"
+else
+	_generator="Ninja"
+fi
+
 if [ ! -d "$_dir/include" ]; then
     echo "-- Building $_name..."
     cd "$ROOTDIR/$BUILD_DIR"
@@ -14,7 +20,7 @@ if [ ! -d "$_dir/include" ]; then
     [ -d "$_name" ] || git clone "$_url" --depth 1
     cd "$_name"
 
-    cmake -S . -B build -G Ninja -DCMAKE_INSTALL_PREFIX="$_dir"
+    cmake -S . -B build -G "$_generator" -DCMAKE_INSTALL_PREFIX="$_dir"
 
     cmake --build build
     cmake --install build
@@ -33,7 +39,7 @@ if [ ! -f "$_dir/lib/libvulkan.so.1" ]; then
     [ -d "$_name" ] || git clone "$_url" --depth 1
     cd "$_name"
 
-    cmake -S . -B build -G Ninja -DCMAKE_INSTALL_PREFIX="$_dir" -DVULKAN_HEADERS_INSTALL_DIR="$_dir"
+    cmake -S . -B build -G "$_generator" -DCMAKE_INSTALL_PREFIX="$_dir" -DVULKAN_HEADERS_INSTALL_DIR="$_dir"
 
     cmake --build build
     cmake --install build
