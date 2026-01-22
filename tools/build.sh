@@ -186,7 +186,6 @@ configure() {
 		--enable-protocol=file,http,https,tcp,udp,rtp
 		--pkg-config-flags="--static"
         --prefix=/
-		"${VULKAN_ACCEL[@]}"
         "${PLATFORM_FLAGS[@]}"
 	)
 
