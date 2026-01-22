@@ -37,6 +37,10 @@ jobs:
         with:
           arch: ${{ matrix.os.arch }}
 
+      - name: Install CMake
+        uses: lukka/get-cmake@v4
+        if: matrix.platform == 'windows'
+
       - name: Setup Minimal MSYS2 environment
         uses: msys2/setup-msys2@v2
         id: msys2
@@ -45,7 +49,7 @@ jobs:
           msystem: ${{ matrix.os.msystem }}
           update: true
           install: >-
-            git make unzip pkgconf diffutils cmake ninja
+            git make unzip pkgconf diffutils
 
       - name: Setup MSYS2 environment
         uses: msys2/setup-msys2@v2
