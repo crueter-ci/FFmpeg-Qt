@@ -10,7 +10,7 @@ changelog.md
 # TODO: add back libdrm stuff
 /libdrm
 /libva
-/vulkan-headers
+/vulkan
 /ffnvcodec-headers
 
 *.exe

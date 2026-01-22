@@ -9,6 +9,5 @@ sudo apt-get install -y \
     git \
     unzip \
     gcc \
-    libffmpeg-nvenc-dev \
     libdrm-dev \
     ninja-build

@@ -155,7 +155,7 @@ configure() {
 
 	# vk + nvcodec
 	if ! macos; then
-		export PKG_CONFIG_PATH="$FFNVCODEC_HEADERS_DIR/lib/pkgconfig:$VULKAN_HEADERS_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
+		export PKG_CONFIG_PATH="$FFNVCODEC_HEADERS_DIR/lib/pkgconfig:$VULKAN_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 		printf -- "-- * vulkan pkg-config: "
 		pkg-config --cflags --libs vulkan
 		printf -- "-- * ffnvcodec pkg-config: "
