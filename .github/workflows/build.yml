@@ -38,7 +38,7 @@ jobs:
           arch: ${{ matrix.os.arch }}
 
       - name: Install CMake
-        uses: lukka/get-cmake@v4
+        uses: lukka/get-cmake@latest
         if: matrix.platform == 'windows'
 
       - name: Setup Minimal MSYS2 environment
