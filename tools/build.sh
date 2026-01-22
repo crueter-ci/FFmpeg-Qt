@@ -63,6 +63,7 @@ case "$PLATFORM" in
 			"${VULKAN_ACCEL[@]}"
 			"${VAAPI_ACCEL[@]}"
 			"${NVDEC_ACCEL[@]}"
+			--extra-cflags="-Og -g"
         )
 		;;
 	freebsd)
@@ -180,7 +181,6 @@ configure() {
 		--enable-openssl
 		--enable-static
 		--disable-shared
-		--enable-small
 		--enable-pic
 		--enable-protocol=file,http,https,tcp,udp,rtp
 		--pkg-config-flags="--static"

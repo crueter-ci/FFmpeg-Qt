@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 _version=3.6.0-1cb0d36b39
-_repo=OpenSSL
+_repo=OpenSSL-Qt
 _name=openssl
 _dir="$ROOTDIR/$_name-$PLATFORM-$ARCH-$_version"
 
