@@ -17,7 +17,7 @@ if [ ! -d "$_dir/include" ]; then
     cmake -S . -B build -G Ninja -DCMAKE_INSTALL_PREFIX="$_dir"
 
     cmake --build build
-    cmake --build build --install
+    cmake --install build
 
     cd "$ROOTDIR"
 fi
@@ -36,7 +36,7 @@ if [ ! -f "$_dir/lib/libvulkan.so.1" ]; then
     cmake -S . -B build -G Ninja -DCMAKE_INSTALL_PREFIX="$_dir" -DVULKAN_HEADERS_INSTALL_DIR="$_dir"
 
     cmake --build build
-    cmake --build build --install
+    cmake --install build
 
     cd "$ROOTDIR"
 fi
