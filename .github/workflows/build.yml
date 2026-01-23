@@ -37,8 +37,8 @@ jobs:
       - name: Setup ccache
         uses: crueter/ccache-action@marge
         with:
-          key: ${{ matrix.platform }}-${{ matrix.os.arch }}
-          restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}
+          key: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -78,7 +78,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.platform }}-${{ matrix.os.arch }}
+          name: ${{ matrix.platform }}-${{ env.ARCH }}
           path: artifacts/*
 
   android:
@@ -100,8 +100,8 @@ jobs:
       - name: Setup ccache
         uses: crueter/ccache-action@marge
         with:
-          key: ${{ matrix.platform }}-${{ matrix.os.arch }}
-          restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}
+          key: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
 
       - name: Install deps
         if: matrix.arch == 'x86_64'
@@ -142,8 +142,8 @@ jobs:
       - name: Setup ccache
         uses: crueter/ccache-action@marge
         with:
-          key: ${{ matrix.platform }}-${{ matrix.os.arch }}
-          restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}
+          key: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
 
       - name: Deps
         run: ./deps/linux.sh
@@ -175,8 +175,8 @@ jobs:
       - name: Setup ccache
         uses: crueter/ccache-action@marge
         with:
-          key: ${{ matrix.platform }}-${{ matrix.os.arch }}
-          restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}
+          key: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
 
       - name: Get Dependencies
         run: |
