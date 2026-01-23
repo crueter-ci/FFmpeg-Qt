@@ -153,7 +153,7 @@ configure() {
 	echo "-- Configuring $PRETTY_NAME..."
 
 	printf -- "-- * OpenSSL pkgconfig: "
-    ipkg-config --cflags --libs openssl
+    pkg-config --cflags --libs openssl
 
 	# libva
 	if unix; then
