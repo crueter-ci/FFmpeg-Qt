@@ -34,6 +34,8 @@ need_vk() {
 
 if msvc; then
 	. deps/pkgconf.sh
+	. deps/nasm.sh
+	[ "$ARCH" = amd64 ] || . deps/gas.sh
 
 	# gets cl.exe and link.exe into the PATH
 	# shellcheck disable=SC2154
@@ -64,9 +66,6 @@ fi
 ! unix  || . deps/libva.sh
 ! need_vk || . deps/vulkan.sh
 ! need_vk || . deps/nvcodec.sh
-
-# shellcheck disable=SC1091
-msvc && . windows/prepare.sh
 
 VULKAN_ACCEL=(--enable-vulkan --enable-hwaccel={h264,vp9}_vulkan)
 NVDEC_ACCEL=(--enable-cuvid
