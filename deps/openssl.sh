@@ -24,7 +24,17 @@ if [ ! -d "$_dir" ]; then
 	done
 fi
 
-export OPENSSL_DIR="$_dir"
-export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$OPENSSL_DIR/lib/pkgconfig"
+if [ ! -d "$_dir"/lib/pkgconfig ]; then
+	echo "-- ! OpenSSL dir $_dir does not contain lib/pkgconfig."
+	exit 1
+fi
+
+if [ ! -f "$_dir"/lib/pkgconfig/openssl.pc ]; then
+	echo "-- ! OpenSSL pkgconfig dir $_dir/lib/pkgconfig does not contain openssl.pc."
+	exit 1
+fi
+
+export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$_dir/lib/pkgconfig"
+echo "PKG CONFIG PATH: $PKG_CONFIG_PATH"
 pkg-config --cflags --libs openssl
 

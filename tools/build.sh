@@ -152,20 +152,8 @@ PLATFORM_FLAGS+=(
 configure() {
 	echo "-- Configuring $PRETTY_NAME..."
 
-	msvc && [ "$ARCH" = amd64 ] && export PKG_CONFIG_PATH="$FFNVCODEC_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
-	export PKG_CONFIG_PATH="$OPENSSL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
-
-    if [ ! -d "$OPENSSL_DIR"/lib/pkgconfig ]; then
-        echo "-- ! OpenSSL dir $OPENSSL_DIR does not contain lib/pkgconfig."
-        exit 1
-    fi
-
 	printf -- "-- * OpenSSL pkgconfig: "
-    if ! pkg-config --cflags --libs openssl; then
-		echo "Not found"
-        echo "-- ! OpenSSL pkgconfig failed."
-        exit 1
-    fi
+    ipkg-config --cflags --libs openssl
 
 	# libva
 	if unix; then
