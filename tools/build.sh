@@ -228,7 +228,12 @@ build() {
     echo "-- Building $PRETTY_NAME..."
     export CL=" /MP"
 
-    $MAKE V=1 -j"$(num_procs)"
+	# wtf
+	for lib in libavdevice libavformat libavutil; do
+    	$MAKE "$lib" -j"$(num_procs)"
+	done
+
+	$MAKE -j"$(num_procs)"
 }
 
 ## Packaging ##
@@ -236,7 +241,7 @@ copy_build_artifacts() {
     echo "-- Copying artifacts..."
     mkdir -p "$OUT_DIR"
 
-	if [ "$PLATFORM" = "solaris" ]; then
+	if solaris; then
 		mkdir -p "$OUT_DIR"/lib
 		find . -name "*.a" -exec cp {} "$OUT_DIR"/lib \;
 		ls "$OUT_DIR"/lib
