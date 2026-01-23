@@ -25,4 +25,6 @@ if [ ! -d "$_dir" ]; then
 fi
 
 export OPENSSL_DIR="$_dir"
+export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$OPENSSL_DIR/lib/pkgconfig"
+pkg-config --cflags --libs openssl
 
