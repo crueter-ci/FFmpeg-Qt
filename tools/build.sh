@@ -229,11 +229,7 @@ build() {
     export CL=" /MP"
 
 	# wtf
-	for lib in libavdevice libavformat libavutil; do
-    	$MAKE "$lib" -j"$(num_procs)"
-	done
-
-	$MAKE -j"$(num_procs)"
+	$MAKE -j"$(num_procs)" || { $MAKE libavutil -j"$(num_procs)"; $MAKE -j"$(num_procs)" ; }
 }
 
 ## Packaging ##
