@@ -187,7 +187,9 @@ configure() {
     echo "-- * Package config path: $PKG_CONFIG_PATH"
 
 	# Please stop using assembly.
-	CONFIGURE_FLAGS+=(--disable-asm)
+	if android && amd64; then
+		CONFIGURE_FLAGS+=(--disable-asm)
+	fi
 
 	# shellcheck disable=SC2054
 	CONFIGURE_FLAGS+=(
@@ -228,8 +230,7 @@ build() {
     echo "-- Building $PRETTY_NAME..."
     export CL=" /MP"
 
-	# wtf
-	$MAKE -j"$(num_procs)" || { $MAKE libavutil/"${LIB_PREFIX}avutil.$STATIC_SUFFIX" -j"$(num_procs)"; $MAKE -j"$(num_procs)" ; }
+	$MAKE -j"$(num_procs)"
 }
 
 ## Packaging ##
