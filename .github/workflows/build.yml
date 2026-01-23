@@ -60,7 +60,9 @@ jobs:
       - name: Build (MSVC)
         if: matrix.platform == 'windows'
         shell: bash
-        run: PLATFORM=windows ARCH=${{ matrix.os.arch }} ./tools/build.sh
+        run: |
+          ./deps/zstd.sh
+          PLATFORM=windows ARCH=${{ matrix.os.arch }} ./tools/build.sh
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

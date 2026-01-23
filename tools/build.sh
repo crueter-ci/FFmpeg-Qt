@@ -35,7 +35,6 @@ need_vk() {
 if msvc; then
 	. deps/pkgconf.sh
 	. deps/nasm.sh
-	. deps/zstd.sh
 	[ "$ARCH" = amd64 ] || . deps/gas.sh
 
 	# gets cl.exe and link.exe into the PATH
