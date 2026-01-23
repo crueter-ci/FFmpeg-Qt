@@ -12,5 +12,7 @@ changelog.md
 /libva
 /vulkan
 /ffnvcodec-headers
+/zstd
+/pkgconf*
 
 *.exe
