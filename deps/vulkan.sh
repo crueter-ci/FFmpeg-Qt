@@ -7,12 +7,6 @@ BUILD_DIR="${BUILD_DIR:-build}"
 _url="https://github.com/KhronosGroup/Vulkan-Headers.git"
 _name="Vulkan-Headers"
 
-if msvc; then
-	_generator="Visual Studio 17 2022"
-else
-	_generator="Ninja"
-fi
-
 if [ ! -d "$_dir/include" ]; then
     echo "-- Building $_name..."
     cd "$ROOTDIR/$BUILD_DIR"
@@ -32,7 +26,7 @@ fi
 _url="https://github.com/KhronosGroup/Vulkan-Loader.git"
 _name="Vulkan-Loader"
 
-if [ ! -f "$_dir/lib/libvulkan.so.1" ]; then
+if [ ! -f "$_dir/lib/libvulkan.so.1" ] && [ ! -f "$_dir/bin/vulkan-1.dll" ]; then
     echo "-- Building $_name..."
     cd "$ROOTDIR/$BUILD_DIR"
 

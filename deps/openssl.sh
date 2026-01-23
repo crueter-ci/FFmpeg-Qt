@@ -16,13 +16,13 @@ if [ ! -d "$_dir" ]; then
 	$TAR xf "$_artifact" -C "$_dir"
 	rm -f "$_dir"/CMakeLists.txt
 	find "$_dir" -name "*.dll*" -type f -exec rm {} \;
-fi
 
-find "$_dir" -name "*.pc" | while read -r pc; do
-	echo "-- * Patching pc file $pc"
-	sed "s|^prefix=\/.*$|prefix=$_dir|g" "$pc" > "$pc".tmp
-	mv "$pc".tmp "$pc"
-done
+	find "$_dir" -name "*.pc" | while read -r pc; do
+		echo "-- * Patching pc file $pc"
+		sed "s|^prefix=\/.*$|prefix=$_dir|g" "$pc" > "$pc".tmp
+		mv "$pc".tmp "$pc"
+	done
+fi
 
 export OPENSSL_DIR="$_dir"
 

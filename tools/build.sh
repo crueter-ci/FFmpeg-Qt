@@ -33,19 +33,31 @@ need_vk() {
 }
 
 if msvc; then
- 	# shellcheck disable=SC2154
+	. deps/pkgconf.sh
+
 	# gets cl.exe and link.exe into the PATH
+	# shellcheck disable=SC2154
 	CLPATH=$(cygpath -u "$VCToolsInstallDir\\bin\\Host${VSCMD_ARG_HOST_ARCH}\\${VSCMD_ARG_TGT_ARCH}")
-	export PATH="$CMAKE_PATH:$NINJA_PATH:$PATH"
- 	export PATH="$CLPATH:$PATH"
+
+	# also add /bin so find exists
+ 	export PATH="$CLPATH:/bin:$PATH"
 
 	echo "MSVC path: $CLPATH"
-	echo "CMake path: $CMAKE_PATH"
-	echo "Ninja: $NINJA_PATH"
 
-	cl
-	cmake
-	ninja
+	printf "cl: "
+	command -v cl
+
+	printf "link: "
+	command -v link
+
+	printf "pkg-config: "
+	command -v pkg-config
+
+	printf "cmake: "
+	command -v cmake
+
+	printf "ninja: "
+	command -v ninja
 fi
 
 . deps/openssl.sh
@@ -174,6 +186,7 @@ configure() {
 			"${VULKAN_ACCEL[@]}"
 			"${NVDEC_ACCEL[@]}"
 			--extra-cflags="-I$VULKAN_DIR/include"
+			--extra-cflags="-I$FFNVCODEC_HEADERS_DIR/include"
 		)
 	fi
 
@@ -204,11 +217,25 @@ configure() {
 	./configure "${CONFIGURE_FLAGS[@]}" --prefix="$OUT_DIR"
 }
 
+# TODO: port this to regular ffmpeg build
 build() {
+	if msvc; then
+		# Windows will kill itself if you try to use \\ instead of \\\\ for paths. awesome
+		# remember folks, JUST USE CMAKE. It's really not that hard!
+		sed -i 's|gsub(/\\\\|gsub(/\\\\\\\\|g' ffbuild/*.mak
+
+		# windows also has a line limit of 8191 characters in the shell
+		# FFmpeg in their infinite wisdom chose to output every single object file in libavcodec at once
+		# in library.mak. So we have to fix their crap again.
+
+		# shellcheck disable=SC2016
+		sed -i 's/\$(Q)echo \$\^ > \$@\.objs/\$(file >\$@.objs,$(OBJS) $(STLIBOBJS))/' ffbuild/library.mak
+	fi
+
     echo "-- Building $PRETTY_NAME..."
     export CL=" /MP"
 
-    $MAKE -j"$(num_procs)"
+    $MAKE V=1 -j"$(num_procs)"
 }
 
 ## Packaging ##
@@ -232,7 +259,7 @@ copy_build_artifacts() {
 rm -rf "$BUILD_DIR" "$OUT_DIR"
 mkdir -p "$BUILD_DIR" "$OUT_DIR"
 
-# ## Download + Extract ##
+## Download + Extract ##
 download
 cd "$BUILD_DIR"
 extract

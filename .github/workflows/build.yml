@@ -42,16 +42,6 @@ jobs:
         id: cmake
         if: matrix.platform == 'windows'
 
-      - name: Setup Minimal MSYS2 environment
-        uses: msys2/setup-msys2@v2
-        id: msys2
-        if: matrix.platform == 'windows'
-        with:
-          msystem: ${{ matrix.os.msystem }}
-          update: true
-          install: >-
-            git make unzip pkgconf diffutils
-
       - name: Setup MSYS2 environment
         uses: msys2/setup-msys2@v2
         if: matrix.platform == 'mingw'
@@ -69,13 +59,8 @@ jobs:
 
       - name: Build (MSVC)
         if: matrix.platform == 'windows'
-        shell: cmd
-        run: |
-          :: Friendly reminder: your shitty build system is NOT better than CMake!
-          :: Because of FFmpeg's horrific build system, we have to use this awful hack where we implant msvc tools
-          :: into PATH and run this shit through some shell passthrough fuckery.
-          ${{ steps.msys2.outputs.msys2-location }}\msys2_shell.cmd -no-start -defterm -here -msys -shell bash \
-            -c "PLATFORM=${{ matrix.platform }} NINJA_PATH=$(cygpath -u ${{ steps.cmake.outputs.ninja-path }}) CMAKE_PATH=$(cygpath -u ${{ steps.cmake.outputs.cmake-path }}) ./tools/build.sh"
+        shell: bash
+        run: PLATFORM=windows ARCH=${{ matrix.os.arch }} ./tools/build.sh
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
