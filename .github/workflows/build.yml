@@ -61,7 +61,8 @@ jobs:
         if: matrix.platform == 'windows'
         shell: bash
         run: |
-          ./deps/zstd.sh
+          ROOTDIR="$PWD"
+          . ./deps/zstd.sh
           PLATFORM=windows ARCH=${{ matrix.os.arch }} ./tools/build.sh
 
       - name: Upload Artifacts

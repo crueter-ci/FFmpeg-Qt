@@ -243,3 +243,11 @@ unix() {
 android() {
 	[ "$PLATFORM" = android ]
 }
+
+arm64() {
+	[ "$ARCH" = arm64 ] || [ "$ARCH" = aarch64 ]
+}
+
+amd64() {
+	[ "$ARCH" = amd64 ] || [ "$ARCH" = x86_64 ]
+}
