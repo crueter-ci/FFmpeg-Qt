@@ -141,6 +141,11 @@ case "$PLATFORM" in
 		;;
 esac
 
+if [ "${CCACHE:-true}" = true ]; then
+	CC="ccache $CC"
+	CXX="ccache $CXX"
+fi
+
 PLATFORM_FLAGS+=(
 	--cc="$CC"
 	--cxx="$CXX"
@@ -175,9 +180,7 @@ configure() {
 			--extra-cflags="-I$VULKAN_DIR/include"
 			--extra-cflags="-I$FFNVCODEC_HEADERS_DIR/include")
 
-		if ! mingw || ! arm64; then
-			CONFIGURE_FLAGS+=("${NVDEC_ACCEL[@]}")
-		fi
+		arm64 || CONFIGURE_FLAGS+=("${NVDEC_ACCEL[@]}")
 	fi
 
     echo "-- * Package config path: $PKG_CONFIG_PATH"
