@@ -229,7 +229,7 @@ build() {
     export CL=" /MP"
 
 	# wtf
-	$MAKE -j"$(num_procs)" || { $MAKE libavutil -j"$(num_procs)"; $MAKE -j"$(num_procs)" ; }
+	$MAKE -j"$(num_procs)" || { $MAKE libavutil/"${LIB_PREFIX}avutil.$STATIC_SUFFIX" -j"$(num_procs)"; $MAKE -j"$(num_procs)" ; }
 }
 
 ## Packaging ##

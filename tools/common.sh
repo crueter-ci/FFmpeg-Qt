@@ -127,6 +127,7 @@ package() {
 
 SHARED_SUFFIX=so
 STATIC_SUFFIX=a
+LIB_PREFIX="lib"
 MAKE="make"
 TAR=tar
 CC=gcc
@@ -161,11 +162,14 @@ case "$PLATFORM" in
 		;;
 	windows)
 		SHARED_SUFFIX=dll
+		STATIC_SUFFIX=lib
+		LIB_PREFIX=""
 		CC=cl
 		CXX=cl
 		;;
 	mingw)
 		SHARED_SUFFIX=dll
+		LIB_PREFIX=""
 		case "$ARCH" in
 			amd64)
 				CC=gcc
@@ -183,6 +187,7 @@ must_install "$MAKE" "$TAR"
 
 export SHARED_SUFFIX
 export STATIC_SUFFIX
+export LIB_PREFIX
 export CC
 export CXX
 export MAKE
