@@ -182,9 +182,8 @@ configure() {
 
     echo "-- * Package config path: $PKG_CONFIG_PATH"
 
-	# FFmpeg's x86_64 assembly on Android sucks
-	# Remember folks: this is why you use C :)
-	android && [ "$ARCH" = "x86_64" ] && CONFIGURE_FLAGS+=(--disable-asm)
+	# Please stop using assembly.
+	CONFIGURE_FLAGS+=(--disable-asm)
 
 	# shellcheck disable=SC2054
 	CONFIGURE_FLAGS+=(
