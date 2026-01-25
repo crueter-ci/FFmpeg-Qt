@@ -54,7 +54,7 @@ jobs:
           msystem: ${{ matrix.os.msystem }}
           update: true
           install: >-
-            git unzip make
+            git unzip make diffutils
           pacboy: >-
             cmake:p ninja:p ccache:p
 
@@ -80,7 +80,7 @@ jobs:
         run: |
           ROOTDIR="$PWD"
           . ./deps/zstd.sh
-          PLATFORM=windows ARCH=${{ matrix.os.arch }} ./tools/build.sh
+          ${{ steps.msys2.outputs.msys2-location }}\msys2_shell.cmd -no-start -defterm -here -msys -shell bash -c "PLATFORM=${{ matrix.platform }} ./tools/build.sh"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
