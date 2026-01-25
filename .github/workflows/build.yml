@@ -47,18 +47,6 @@ jobs:
         with:
           arch: ${{ matrix.os.arch }}
 
-      - name: Setup Minimal MSYS2 environment
-        id: msys2
-        uses: msys2/setup-msys2@v2
-        if: matrix.platform == 'windows'
-        with:
-          msystem: ${{ matrix.os.msystem }}
-          update: true
-          install: >-
-            git unzip make diffutils
-          pacboy: >-
-            cmake:p ninja:p ccache:p zstd:p
-
       - name: Setup MSYS2 environment
         uses: msys2/setup-msys2@v2
         if: matrix.platform == 'mingw'
@@ -77,8 +65,11 @@ jobs:
 
       - name: Build (MSVC)
         if: matrix.platform == 'windows'
-        shell: cmd
-        run: ${{ steps.msys2.outputs.msys2-location }}\msys2_shell.cmd -no-start -defterm -here -${{ matrix.os.msystem }} -shell bash -c "PLATFORM=${{ matrix.platform }} ./tools/build.sh"
+        shell: bash
+        run: |
+          ROOTDIR="$PWD"
+          . ./deps/zstd.sh
+          PLATFORM=windows ARCH=${{ matrix.os.arch }} ./tools/build.sh
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
