@@ -80,7 +80,7 @@ jobs:
         run: |
           ROOTDIR="$PWD"
           . ./deps/zstd.sh
-          export PATH="$PATH:/${{ matrix.os.mystem }}/bin"
+          export PATH="$PATH:/${{ matrix.os.msystem }}/bin"
           PLATFORM=windows ARCH=${{ matrix.os.arch }} ./tools/build.sh
 
       - name: Upload Artifacts
