@@ -55,6 +55,12 @@ if msvc; then
 	printf "cl: "
 	command -v cl
 
+	printf "mt: "
+	command -v mt
+
+	printf "rc: "
+	command -v rc
+
 	printf "link: "
 	command -v link
 
