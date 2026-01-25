@@ -15,8 +15,8 @@ if [ "$PLATFORM" = windows ]; then
 	SDKPATH=$(cygpath -u "$WindowsSdkVerBinPath/$VSCMD_ARG_HOST_ARCH")
 
 	# also add /bin so find exists
-	# and msys2 stuff for misc tools like make etc.
- 	export PATH="$CLPATH:$SDKPATH:/bin:$PATH:/$MSYSTEM/bin"
+	# local bin for nasm, etc
+ 	export PATH="$CLPATH:$SDKPATH:/usr/local/bin:/bin:$PATH:/$MSYSTEM/bin"
 
 	echo "-- MSVC path: $CLPATH"
 	echo "-- SDK path: $SDKPATH"
@@ -178,7 +178,7 @@ PLATFORM_FLAGS+=(
 # cmake
 configure() {
 	echo "-- Configuring $PRETTY_NAME..."
-
+	
 	printf -- "-- * OpenSSL pkgconfig: "
     pkg-config --cflags --libs openssl
 
@@ -251,7 +251,7 @@ build() {
     echo "-- Building $PRETTY_NAME..."
     export CL=" /MP"
 
-	$MAKE -j"$(num_procs)"
+	$MAKE -j"$(num_procs)" || ls libavutil/x86/tx_float.o
 }
 
 ## Packaging ##
@@ -272,13 +272,13 @@ copy_build_artifacts() {
 
 
 ## Cleanup ##
-rm -rf "$BUILD_DIR" "$OUT_DIR"
+# rm -rf "$BUILD_DIR" "$OUT_DIR"
 mkdir -p "$BUILD_DIR" "$OUT_DIR"
 
 ## Download + Extract ##
-download
+# download
 cd "$BUILD_DIR"
-extract
+# extract
 
 ## Configure ##
 cd "$DIRECTORY"

@@ -28,7 +28,7 @@ must_install() {
 	done
 }
 
-must_install curl zstd cmake ninja git pkg-config
+must_install curl zstd cmake ninja git
 
 case "$ARTIFACT" in
 	*.zip) must_install unzip ;;
@@ -166,6 +166,9 @@ case "$PLATFORM" in
 		LIB_PREFIX=""
 		CC=cl
 		CXX=cl
+
+		# The built-in windows tar is SLOOOOOOOOOOOOOOOOOOOW
+		TAR=/bin/tar
 		;;
 	mingw)
 		SHARED_SUFFIX=dll
