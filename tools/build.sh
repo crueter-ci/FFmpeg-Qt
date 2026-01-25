@@ -51,6 +51,7 @@ if msvc; then
  	export PATH="$CLPATH:$SDKPATH:/bin:$PATH:/$MSYSTEM/bin"
 
 	echo "MSVC path: $CLPATH"
+	echo "SDK path: $SDKPATH"
 
 	printf "cl: "
 	command -v cl
