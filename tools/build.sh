@@ -4,6 +4,27 @@
 
 set -e
 
+if [ "$PLATFORM" = windows ]; then
+	# gets cl.exe and link.exe into the PATH
+	# shellcheck disable=SC2154
+	CLPATH=$(cygpath -u "$VCToolsInstallDir\\bin\\Host${VSCMD_ARG_HOST_ARCH}\\${VSCMD_ARG_TGT_ARCH}")
+
+	# also have to implant windows sdk into path
+	# thanks ffmpeg......
+	# shellcheck disable=SC2154
+	SDKPATH=$(cygpath -u "$WindowsSdkVerBinPath/$VSCMD_ARG_HOST_ARCH")
+
+	# also add /bin so find exists
+	# and msys2 stuff for misc tools like make etc.
+ 	export PATH="$CLPATH:$SDKPATH:/bin:$PATH:/$MSYSTEM/bin"
+
+	echo "-- MSVC path: $CLPATH"
+	echo "-- SDK path: $SDKPATH"
+
+	[ -d "$CLPATH" ] || { echo "-- MSVC Path does not exist."; exit 1; }
+	[ -d "$SDKPATH" ] || { echo "-- SDK Path does not exist."; exit 1; }
+fi
+
 . tools/common.sh
 
 ## Buildtime/Input Variables ##
@@ -36,25 +57,6 @@ if msvc; then
 	. deps/pkgconf.sh
 	. deps/nasm.sh
 	[ "$ARCH" = amd64 ] || . deps/gas.sh
-
-	# gets cl.exe and link.exe into the PATH
-	# shellcheck disable=SC2154
-	CLPATH=$(cygpath -u "$VCToolsInstallDir\\bin\\Host${VSCMD_ARG_HOST_ARCH}\\${VSCMD_ARG_TGT_ARCH}")
-
-	# also have to implant windows sdk into path
-	# thanks ffmpeg......
-	# shellcheck disable=SC2154
-	SDKPATH=$(cygpath -u "$WindowsSdkVerBinPath/$VSCMD_ARG_HOST_ARCH")
-
-	# also add /bin so find exists
-	# and msys2 stuff for misc tools like make etc.
- 	export PATH="$CLPATH:$SDKPATH:/bin:$PATH:/$MSYSTEM/bin"
-
-	echo "-- MSVC path: $CLPATH"
-	echo "-- SDK path: $SDKPATH"
-
-	[ -d "$CLPATH" ] || { echo "-- MSVC Path does not exist."; exit 1; }
-	[ -d "$SDKPATH" ] || { echo "-- SDK Path does not exist."; exit 1; }
 
 	printf -- "-- cl: "
 	command -v cl
