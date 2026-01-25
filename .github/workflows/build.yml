@@ -54,9 +54,9 @@ jobs:
           msystem: ${{ matrix.os.msystem }}
           update: true
           install: >-
-            git unzip
+            git unzip make
           pacboy: >-
-            cmake:p ninja:p ccache:p make:p
+            cmake:p ninja:p ccache:p
 
       - name: Setup MSYS2 environment
         uses: msys2/setup-msys2@v2
