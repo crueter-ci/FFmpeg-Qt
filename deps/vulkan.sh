@@ -20,10 +20,10 @@ if [ ! -d "$_dir/include" ]; then
     [ -d "$_name" ] || git clone "$_url" --depth 1
     cd "$_name"
 
-    cmake -S . -B build -G "$_generator" -DCMAKE_INSTALL_PREFIX="$_dir"
+    cmake -S . -B build -G "$_generator" -DCMAKE_INSTALL_PREFIX="$_dir" -DCMAKE_BUILD_TYPE=Release
 
-    cmake --build build
-    cmake --install build
+    cmake --build build --config Release
+    cmake --install build --config Release
 
     cd "$ROOTDIR"
 fi
@@ -39,10 +39,10 @@ if [ ! -f "$_dir/lib/libvulkan.so.1" ] && [ ! -f "$_dir/bin/vulkan-1.dll" ]; the
     [ -d "$_name" ] || git clone "$_url" --depth 1
     cd "$_name"
 
-    cmake -S . -B build -G "$_generator" -DCMAKE_INSTALL_PREFIX="$_dir" -DVULKAN_HEADERS_INSTALL_DIR="$_dir"
+    cmake -S . -B build -G "$_generator" -DCMAKE_INSTALL_PREFIX="$_dir" -DVULKAN_HEADERS_INSTALL_DIR="$_dir" -DCMAKE_BUILD_TYPE=Release
 
-    cmake --build build
-    cmake --install build
+    cmake --build build --config Release
+    cmake --install build --config Release
 
     cd "$ROOTDIR"
 fi

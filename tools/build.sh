@@ -159,8 +159,11 @@ esac
 
 # TODO
 if [ "${CCACHE:-true}" = true ] && command -v ccache >/dev/null 2>&1; then
-	CC="ccache $CC"
-	CXX="ccache $CXX"
+	_ccache="$(which ccache)"
+	CC="$_ccache $CC"
+	CXX="$_ccache $CXX"
+
+	echo "-- Using ccache at ${_ccache}"
 fi
 
 PLATFORM_FLAGS+=(
