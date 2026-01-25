@@ -58,7 +58,7 @@ jobs:
           msystem: ${{ matrix.os.msystem }}
           update: true
           install: >-
-            make unzip cmake ninja
+            git make unzip cmake ninja
 
       - name: Setup MSYS2 environment
         uses: msys2/setup-msys2@v2

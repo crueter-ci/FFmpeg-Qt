@@ -28,7 +28,7 @@ must_install() {
 	done
 }
 
-must_install curl zstd
+must_install curl zstd cmake ninja git pkg-config
 
 case "$ARTIFACT" in
 	*.zip) must_install unzip ;;
