@@ -44,34 +44,37 @@ if msvc; then
 	# also have to implant windows sdk into path
 	# thanks ffmpeg......
 	# shellcheck disable=SC2154
-	SDKPATH=$(cygpath -u "$UniversalCRTSdkDir\\$UCRTVersion\\$VSCMD_ARG_HOST_ARCH")
+	SDKPATH=$(cygpath -u "$WindowsSdkVerBinPath")
 
 	# also add /bin so find exists
 	# and msys2 stuff for misc tools like make etc.
  	export PATH="$CLPATH:$SDKPATH:/bin:$PATH:/$MSYSTEM/bin"
 
-	echo "MSVC path: $CLPATH"
-	echo "SDK path: $SDKPATH"
+	echo "-- MSVC path: $CLPATH"
+	echo "-- SDK path: $SDKPATH"
 
-	printf "cl: "
+	[ -d "$CLPATH" ] || { echo "-- MSVC Path does not exist."; exit 1; }
+	[ -d "$SDKPATH" ] || { echo "-- SDK Path does not exist."; exit 1; }
+
+	printf "-- cl: "
 	command -v cl
 
-	printf "mt: "
+	printf "-- mt: "
 	command -v mt
 
-	printf "rc: "
+	printf "-- rc: "
 	command -v rc
 
-	printf "link: "
+	printf "-- link: "
 	command -v link
 
-	printf "pkg-config: "
+	printf "-- pkg-config: "
 	command -v pkg-config
 
-	printf "cmake: "
+	printf "-- cmake: "
 	command -v cmake
 
-	printf "ninja: "
+	printf "-- ninja: "
 	command -v ninja
 fi
 
