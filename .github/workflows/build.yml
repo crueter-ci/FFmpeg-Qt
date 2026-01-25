@@ -7,79 +7,86 @@ env:
   CCACHE: true
 
 jobs:
-  # windows:
-  #   name: "${{ matrix.platform }} (${{ matrix.os.arch }})"
-  #   runs-on: ${{ matrix.os.runs-on }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       os:
-  #         - runs-on: windows-latest
-  #           arch: amd64
-  #           msystem: mingw64
+  windows:
+    name: "${{ matrix.platform }} (${{ matrix.os.arch }})"
+    runs-on: ${{ matrix.os.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - runs-on: windows-latest
+            arch: amd64
+            msystem: mingw64
 
-  #         - runs-on: windows-11-arm
-  #           arch: arm64
-  #           msystem: clangarm64
-  #       platform: [windows, mingw]
+          - runs-on: windows-11-arm
+            arch: arm64
+            msystem: clangarm64
+        platform: [windows, mingw]
 
-  #   env:
-  #     ARCH: ${{ matrix.os.arch }}
-  #     PLATFORM: ${{ matrix.platform }}
+    env:
+      ARCH: ${{ matrix.os.arch }}
+      PLATFORM: ${{ matrix.platform }}
 
-  #   defaults:
-  #     run:
-  #       shell: ${{ matrix.platform == 'mingw' && 'msys2 {0}' || 'bash' }}
+    defaults:
+      run:
+        shell: ${{ matrix.platform == 'mingw' && 'msys2 {0}' || 'bash' }}
 
-  #   steps:
-  #     - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Setup ccache
-  #       uses: crueter/ccache-action@marge
-  #       with:
-  #         key: ${{ env.PLATFORM }}-${{ env.ARCH }}
-  #         restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+      - name: Setup ccache
+        uses: crueter/ccache-action@marge
+        with:
+          key: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
 
-  #     - name: Setup MSVC
-  #       uses: ilammy/msvc-dev-cmd@v1
-  #       if: matrix.platform == 'windows'
-  #       with:
-  #         arch: ${{ matrix.os.arch }}
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        if: matrix.platform == 'windows'
+        with:
+          arch: ${{ matrix.os.arch }}
 
-  #     - name: Install CMake
-  #       uses: lukka/get-cmake@latest
-  #       id: cmake
-  #       if: matrix.platform == 'windows'
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+        id: cmake
+        if: matrix.platform == 'windows'
 
-  #     - name: Setup MSYS2 environment
-  #       uses: msys2/setup-msys2@v2
-  #       if: matrix.platform == 'mingw'
-  #       with:
-  #         msystem: ${{ matrix.os.msystem }}
-  #         update: true
-  #         install: >-
-  #           git make unzip pkgconf diffutils
-  #         pacboy: >-
-  #           toolchain:p pkg-config:p nasm:p cmake:p ninja:p
-  #           ccache:p
+      - name: Setup Minimal MSYS2 environment
+        uses: msys2/setup-msys2@v2
+        if: matrix.platform == 'windows'
+        with:
+          msystem: ${{ matrix.os.msystem }}
+          update: true
 
-  #     - name: Build (MSYS)
-  #       if: matrix.platform == 'mingw'
-  #       run: ./tools/build.sh
+      - name: Setup MSYS2 environment
+        uses: msys2/setup-msys2@v2
+        if: matrix.platform == 'mingw'
+        with:
+          msystem: ${{ matrix.os.msystem }}
+          update: true
+          install: >-
+            git make unzip pkgconf diffutils
+          pacboy: >-
+            toolchain:p pkg-config:p nasm:p cmake:p ninja:p
+            ccache:p
 
-  #     - name: Build (MSVC)
-  #       if: matrix.platform == 'windows'
-  #       shell: bash
-  #       run: |
-  #         ROOTDIR="$PWD"
-  #         . ./deps/zstd.sh
-  #         PLATFORM=windows ARCH=${{ matrix.os.arch }} ./tools/build.sh
+      - name: Build (MSYS)
+        if: matrix.platform == 'mingw'
+        run: ./tools/build.sh
 
-  #     - name: Upload Artifacts
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: ${{ matrix.platform }}-${{ env.ARCH }}
-  #         path: artifacts/*
+      - name: Build (MSVC)
+        if: matrix.platform == 'windows'
+        shell: msys2 {0}
+        run: |
+          ROOTDIR="$PWD"
+          . ./deps/zstd.sh
+          PLATFORM=windows ARCH=${{ matrix.os.arch }} ./tools/build.sh
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}-${{ env.ARCH }}
+          path: artifacts/*
 
   android:
     name: "Android (${{ matrix.arch }})"
