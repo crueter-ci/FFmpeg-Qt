@@ -56,25 +56,25 @@ if msvc; then
 	[ -d "$CLPATH" ] || { echo "-- MSVC Path does not exist."; exit 1; }
 	[ -d "$SDKPATH" ] || { echo "-- SDK Path does not exist."; exit 1; }
 
-	printf "-- cl: "
+	printf -- "-- cl: "
 	command -v cl
 
-	printf "-- mt: "
+	printf -- "-- mt: "
 	command -v mt
 
-	printf "-- rc: "
+	printf -- "-- rc: "
 	command -v rc
 
-	printf "-- link: "
+	printf -- "-- link: "
 	command -v link
 
-	printf "-- pkg-config: "
+	printf -- "-- pkg-config: "
 	command -v pkg-config
 
-	printf "-- cmake: "
+	printf -- "-- cmake: "
 	command -v cmake
 
-	printf "-- ninja: "
+	printf -- "-- ninja: "
 	command -v ninja
 fi
 
