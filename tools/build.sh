@@ -41,8 +41,14 @@ if msvc; then
 	# shellcheck disable=SC2154
 	CLPATH=$(cygpath -u "$VCToolsInstallDir\\bin\\Host${VSCMD_ARG_HOST_ARCH}\\${VSCMD_ARG_TGT_ARCH}")
 
+	# also have to implant windows sdk into path
+	# thanks ffmpeg......
+	# shellcheck disable=SC2154
+	SDKPATH=$(cygpath -u "$UniversalCRTSdkDir\\$UCRTVersion\\$VSCMD_ARG_HOST_ARCH")
+
 	# also add /bin so find exists
- 	export PATH="$CLPATH:/bin:$PATH"
+	# and msys2 stuff for misc tools like make etc.
+ 	export PATH="$CLPATH:$SDKPATH:/bin:$PATH:/$MSYSTEM/bin"
 
 	echo "MSVC path: $CLPATH"
 
