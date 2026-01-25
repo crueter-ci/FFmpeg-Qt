@@ -77,7 +77,7 @@ jobs:
 
       - name: Build (MSVC)
         if: matrix.platform == 'windows'
-        shell: msys2 {0}
+        shell: bash
         run: |
           ROOTDIR="$PWD"
           . ./deps/zstd.sh
