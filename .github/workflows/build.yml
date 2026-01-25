@@ -35,10 +35,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup ccache
-        uses: crueter/ccache-action@marge
+        uses: crueter/ccache-action@master
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          install: binary
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -46,19 +47,16 @@ jobs:
         with:
           arch: ${{ matrix.os.arch }}
 
-      - name: Install CMake
-        uses: lukka/get-cmake@latest
-        id: cmake
-        if: matrix.platform == 'windows'
-
       - name: Setup Minimal MSYS2 environment
         uses: msys2/setup-msys2@v2
         if: matrix.platform == 'windows'
         with:
           msystem: ${{ matrix.os.msystem }}
           update: true
+          install: >-
+            git unzip
           pacboy: >-
-            cmake:p ninja:p git:p make:p unzip:p
+            cmake:p ninja:p make:p ccache:p
 
       - name: Setup MSYS2 environment
         uses: msys2/setup-msys2@v2
@@ -107,10 +105,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup ccache
-        uses: crueter/ccache-action@marge
+        uses: crueter/ccache-action@master
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          install: binary
 
       - name: Install deps
         if: matrix.arch == 'x86_64'
@@ -149,10 +148,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup ccache
-        uses: crueter/ccache-action@marge
+        uses: crueter/ccache-action@master
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          install: binary
 
       - name: Deps
         run: ./deps/linux.sh
@@ -182,10 +182,11 @@ jobs:
           submodules: recursive
 
       - name: Setup ccache
-        uses: crueter/ccache-action@marge
+        uses: crueter/ccache-action@master
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          install: binary
 
       - name: Get Dependencies
         run: |
