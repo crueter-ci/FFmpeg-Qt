@@ -238,7 +238,7 @@ build() {
 	if msvc; then
 		# Windows will kill itself if you try to use \\ instead of \\\\ for paths. awesome
 		# remember folks, JUST USE CMAKE. It's really not that hard!
-		sed -i 's|gsub(/\\\\|gsub(/\\\\\\\\|g' ffbuild/*.mak
+		# sed -i 's|gsub(/\\\\|gsub(/\\\\\\\\|g' ffbuild/*.mak
 
 		# windows also has a line limit of 8191 characters in the shell
 		# FFmpeg in their infinite wisdom chose to output every single object file in libavcodec at once
