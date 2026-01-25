@@ -44,7 +44,7 @@ if msvc; then
 	# also have to implant windows sdk into path
 	# thanks ffmpeg......
 	# shellcheck disable=SC2154
-	SDKPATH=$(cygpath -u "$WindowsSdkVerBinPath")
+	SDKPATH=$(cygpath -u "$WindowsSdkVerBinPath/$VSCMD_ARG_HOST_ARCH")
 
 	# also add /bin so find exists
 	# and msys2 stuff for misc tools like make etc.
