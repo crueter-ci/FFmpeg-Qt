@@ -55,7 +55,7 @@ jobs:
           msystem: ${{ matrix.os.msystem }}
           update: true
           install: >-
-            git unzip make diffutils
+            git unzip make diffutils zstd
           pacboy: >-
             cmake:p ninja:p ccache:p
 
@@ -77,11 +77,8 @@ jobs:
 
       - name: Build (MSVC)
         if: matrix.platform == 'windows'
-        shell: bash
-        run: |
-          ROOTDIR="$PWD"
-          . ./deps/zstd.sh
-          ${{ steps.msys2.outputs.msys2-location }}\msys2_shell.cmd -no-start -defterm -here -msys -shell bash -c "PLATFORM=${{ matrix.platform }} ./tools/build.sh"
+        shell: cmd
+        run: ${{ steps.msys2.outputs.msys2-location }}\msys2_shell.cmd -no-start -defterm -here -msys -shell bash -c "PLATFORM=${{ matrix.platform }} ./tools/build.sh"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
