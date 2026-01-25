@@ -58,7 +58,7 @@ jobs:
           msystem: ${{ matrix.os.msystem }}
           update: true
           install: >-
-            unzip
+            make unzip
 
       - name: Setup MSYS2 environment
         uses: msys2/setup-msys2@v2
