@@ -120,7 +120,7 @@ case "$PLATFORM" in
 			--toolchain=msvc
 			--arch="$ARCH"
 			--target-os=win64
-			--extra-cflags="-I\"$VULKAN_SDK/include\""
+			# --extra-cflags="-I\"$VULKAN_SDK/include\""
 		)
 		;;
 	mingw)
@@ -162,12 +162,19 @@ configure() {
 
 	# vk + nvcodec
 	if need_vk; then
-		# TODO: vulkan/ffnvcodec are not pulled in via pkgconfig properly
 		export PKG_CONFIG_PATH="$FFNVCODEC_DIR/lib/pkgconfig:$VULKAN_SDK/lib/pkgconfig:$PKG_CONFIG_PATH"
+    	echo "-- * (vk) Package config path: $PKG_CONFIG_PATH"
 
-		CONFIGURE_FLAGS+=(
-			"${VULKAN_ACCEL[@]}"
-			--extra-cflags="-I$FFNVCODEC_DIR/include")
+		printf -- "-- * vulkan pkg-config: "
+		pkg-config --cflags --libs vulkan
+		printf -- "-- * ffnvcodec pkg-config: "
+		pkg-config --cflags --libs ffnvcodec
+
+		# CONFIGURE_FLAGS+=(
+		# 	"${VULKAN_ACCEL[@]}"
+		# 	--extra-cflags="-I$FFNVCODEC_DIR/include")
+
+		CONFIGURE_FLAGS+=("${VULKAN_ACCEL[@]}")
 
 		arm64 || CONFIGURE_FLAGS+=("${NVDEC_ACCEL[@]}")
 	fi
@@ -212,9 +219,9 @@ configure() {
 build() {
 	_group "Building $PRETTY_NAME"
 	if msvc; then
-		# For some reason configure tries to make cl.exe the HOSTLD
-		sed -i 's|^HOSTLD=.*|HOSTLD=./compat/windows/mslink|' ffbuild/config.mak
-		sed -i 's|^HOSTLD_O=.*|HOSTLD_O=-out:$@|' ffbuild/config.mak
+		# # For some reason configure tries to make cl.exe the HOSTLD
+		# sed -i 's|^HOSTLD=.*|HOSTLD=./compat/windows/mslink|' ffbuild/config.mak
+		# sed -i 's|^HOSTLD_O=.*|HOSTLD_O=-out:$@|' ffbuild/config.mak
 
 		# shellcheck disable=SC2016
 		sed -i 's/\$(Q)echo \$\^ > \$@\.objs/\$(file >\$@.objs,\$^)/' ffbuild/library.mak
