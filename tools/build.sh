@@ -204,7 +204,7 @@ configure() {
 
 # TODO: port this to regular ffmpeg build
 build() {
-	# if msvc; then
+	if msvc; then
 	# 	# Windows will kill itself if you try to use \\ instead of \\\\ for paths. awesome
 	# 	# remember folks, JUST USE CMAKE. It's really not that hard!
 	# 	# sed -i 's|gsub(/\\\\|gsub(/\\\\\\\\|g' ffbuild/*.mak
@@ -213,9 +213,9 @@ build() {
 	# 	# FFmpeg in their infinite wisdom chose to output every single object file in libavcodec at once
 	# 	# in library.mak. So we have to fix their crap again.
 
-	# 	# shellcheck disable=SC2016
-	# 	sed -i 's/\$(Q)echo \$\^ > \$@\.objs/\$(file >\$@.objs,$(OBJS) $(STLIBOBJS))/' ffbuild/library.mak
-	# fi
+		# shellcheck disable=SC2016
+		sed -i 's/\$(Q)echo \$\^ > \$@\.objs/\$(file >\$@.objs,$(OBJS) $(STLIBOBJS))/' ffbuild/library.mak
+	fi
 
     echo "-- Building $PRETTY_NAME..."
     export CL=" /MP"
