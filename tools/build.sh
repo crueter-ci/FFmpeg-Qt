@@ -196,6 +196,13 @@ configure() {
 
 	echo "-- * Configure flags: ${CONFIGURE_FLAGS[*]}"
 
+	if windows; then
+		cfg="$(cygpath -w $PWD/ffbuild/config.log)"
+	else
+		cfg="$PWD/ffbuild/config.log"
+	fi
+
+	echo "CONFIG_LOG=$cfg" >> "$GITHUB_ENV"
 	./configure "${CONFIGURE_FLAGS[@]}" --prefix="$OUT_DIR"
 }
 

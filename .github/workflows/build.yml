@@ -78,8 +78,15 @@ jobs:
         shell: bash
         run: PLATFORM=windows ARCH=${{ matrix.os.arch }} ./tools/build.sh
 
+      - name: Upload config.log on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.platform }}-${{ matrix.os.arch }}-config
+          path: ${{ env.CONFIG_LOG }}
+
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.platform }}-${{ env.ARCH }}
           path: artifacts/*
@@ -117,8 +124,15 @@ jobs:
           chmod a+x ./tools/build.sh
           ./tools/build.sh
 
+      - name: Upload config.log on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.PLATFORM }}-${{ env.ARCH }}-config
+          path: ${{ env.CONFIG_LOG }}
+
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-${{ matrix.arch }}
           path: artifacts/*
@@ -156,8 +170,15 @@ jobs:
       - name: Build
         run: ./tools/build.sh
 
+      - name: Upload config.log on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.PLATFORM }}-${{ env.ARCH }}-config
+          path: ${{ env.CONFIG_LOG }}
+
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.arch }}
           path: artifacts/*
@@ -194,8 +215,15 @@ jobs:
           chmod a+x ./tools/build.sh
           ./tools/build.sh
 
+      - name: Upload config.log on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.PLATFORM }}-${{ env.ARCH }}-config
+          path: ${{ env.CONFIG_LOG }}
+
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-universal
           path: artifacts/*
