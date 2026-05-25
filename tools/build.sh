@@ -4,15 +4,6 @@
 
 set -e
 
-if [ "$PLATFORM" = windows ]; then
-	# shellcheck disable=SC2154
-	TOOLSDIR=$(cygpath -u "$VCToolsInstallDir")
-	export PATH="${TOOLSDIR}/bin/Host${VSCMD_ARG_HOST_ARCH}/${VSCMD_ARG_TGT_ARCH}/:$PATH"
-
-	VULKAN_SDK=$(cygpath -u "${VULKAN_SDK:?}")
-	FFNVCODEC_DIR=$(cygpath -u "${FFNVCODEC_DIR:?}")
-fi
-
 . tools/common.sh
 
 ## Buildtime/Input Variables ##
@@ -43,7 +34,9 @@ need_vk() {
 
 if msvc; then
 	_group "MSVC Setup"
-	[ "$ARCH" = amd64 ] || . deps/gas.sh
+
+	VULKAN_SDK=$(cygpath -u "${VULKAN_SDK:?}")
+	FFNVCODEC_DIR=$(cygpath -u "${FFNVCODEC_DIR:?}")
 
 	printf -- "-- cl: "
 	command -v cl
@@ -120,7 +113,6 @@ case "$PLATFORM" in
 			--toolchain=msvc
 			--arch="$ARCH"
 			--target-os=win64
-			# --extra-cflags="-I\"$VULKAN_SDK/include\""
 		)
 		;;
 	mingw)
@@ -140,18 +132,24 @@ if ! msvc && [ "${CCACHE:-true}" = true ] && command -v ccache >/dev/null 2>&1; 
 	echo "-- Using ccache at ${ccache}"
 fi
 
-PLATFORM_FLAGS+=(
-	--cc="$CC"
-	--cxx="$CXX")
+PLATFORM_FLAGS+=(--cc="$CC" --cxx="$CXX")
 
-## Build Functions ##
-
-# cmake
-configure() {
-	_group "Configuring $PRETTY_NAME"
+checks() {
+	_group "pkg-config checks"
 
 	printf -- "-- * OpenSSL pkgconfig: "
     pkg-config --cflags --libs openssl
+
+	if need_vk; then
+		export PKG_CONFIG_PATH="$FFNVCODEC_DIR/lib/pkgconfig:$VULKAN_SDK/lib/pkgconfig:$PKG_CONFIG_PATH"
+
+	    echo "-- * Package config path: $PKG_CONFIG_PATH"
+
+		printf -- "-- * vulkan pkg-config: "
+		pkg-config --cflags --libs vulkan
+		printf -- "-- * ffnvcodec pkg-config: "
+		pkg-config --cflags --libs ffnvcodec
+	fi
 
 	# libva
 	if linux; then
@@ -160,26 +158,21 @@ configure() {
 		pkg-config --cflags --libs libva
 	fi
 
+	_end
+}
+
+## Build Functions ##
+
+# cmake
+configure() {
+	_group "Configuring $PRETTY_NAME"
+
 	# vk + nvcodec
 	if need_vk; then
-		export PKG_CONFIG_PATH="$FFNVCODEC_DIR/lib/pkgconfig:$VULKAN_SDK/lib/pkgconfig:$PKG_CONFIG_PATH"
-    	echo "-- * (vk) Package config path: $PKG_CONFIG_PATH"
-
-		printf -- "-- * vulkan pkg-config: "
-		pkg-config --cflags --libs vulkan
-		printf -- "-- * ffnvcodec pkg-config: "
-		pkg-config --cflags --libs ffnvcodec
-
-		# CONFIGURE_FLAGS+=(
-		# 	"${VULKAN_ACCEL[@]}"
-		# 	--extra-cflags="-I$FFNVCODEC_DIR/include")
-
 		CONFIGURE_FLAGS+=("${VULKAN_ACCEL[@]}")
 
 		arm64 || CONFIGURE_FLAGS+=("${NVDEC_ACCEL[@]}")
 	fi
-
-    echo "-- * Package config path: $PKG_CONFIG_PATH"
 
 	if android && amd64; then
 		CONFIGURE_FLAGS+=(--disable-asm)
@@ -219,10 +212,6 @@ configure() {
 build() {
 	_group "Building $PRETTY_NAME"
 	if msvc; then
-		# # For some reason configure tries to make cl.exe the HOSTLD
-		# sed -i 's|^HOSTLD=.*|HOSTLD=./compat/windows/mslink|' ffbuild/config.mak
-		# sed -i 's|^HOSTLD_O=.*|HOSTLD_O=-out:$@|' ffbuild/config.mak
-
 		# shellcheck disable=SC2016
 		sed -i 's/\$(Q)echo \$\^ > \$@\.objs/\$(file >\$@.objs,\$^)/' ffbuild/library.mak
 
@@ -245,6 +234,9 @@ copy_build_artifacts() {
 	$MAKE install
 	_end
 }
+
+## Initial Checks ##
+checks
 
 ## Cleanup ##
 rm -rf "$BUILD_DIR" "$OUT_DIR"

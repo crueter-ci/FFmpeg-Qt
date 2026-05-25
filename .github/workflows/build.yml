@@ -50,6 +50,7 @@ jobs:
           zstd: true
           nasm: true
           ffnvcodec: true
+          gas-preprocessor: true
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
