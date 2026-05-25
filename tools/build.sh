@@ -65,7 +65,6 @@ fi
 
 . deps/openssl.sh
 if linux; then . deps/libva.sh; fi
-if need_vk; then . deps/nvcodec.sh; fi
 
 VULKAN_ACCEL=(--enable-vulkan --enable-hwaccel={h264,vp9}_vulkan)
 NVDEC_ACCEL=(--enable-cuvid
@@ -118,8 +117,6 @@ case "$PLATFORM" in
 			--target-os=win64
 			--extra-cflags="-I\"$VULKAN_SDK/include\""
 		)
-
-		PLATFORM_FLAGS+=(--extra-cflags="-I\"$FFNVCODEC_DIR/include\"")
 		;;
 	mingw)
 		PLATFORM_FLAGS=(
@@ -160,11 +157,13 @@ configure() {
 
 	# vk + nvcodec
 	if need_vk; then
-		export PKG_CONFIG_PATH="$FFNVCODEC_HEADERS_DIR/lib/pkgconfig:$VULKAN_SDK/lib/pkgconfig:$PKG_CONFIG_PATH"
-		# printf -- "-- * vulkan pkg-config: "
-		# pkg-config --cflags --libs vulkan
+		export PKG_CONFIG_PATH="$FFNVCODEC_DIR/lib/pkgconfig:$VULKAN_SDK/lib/pkgconfig:$PKG_CONFIG_PATH"
+		echo "-- * Package config path: $PKG_CONFIG_PATH"
+
+		printf -- "-- * vulkan pkg-config: "
+		pkg-config --cflags --libs vulkan || true
 		printf -- "-- * ffnvcodec pkg-config: "
-		pkg-config --cflags --libs ffnvcodec
+		pkg-config --cflags --libs ffnvcodec || true
 
 		CONFIGURE_FLAGS+=(
 			"${VULKAN_ACCEL[@]}"
@@ -176,7 +175,6 @@ configure() {
 
     echo "-- * Package config path: $PKG_CONFIG_PATH"
 
-	# Please stop using assembly.
 	if android && amd64; then
 		CONFIGURE_FLAGS+=(--disable-asm)
 	fi
@@ -232,13 +230,13 @@ copy_build_artifacts() {
 }
 
 ## Cleanup ##
-rm -rf "$BUILD_DIR" "$OUT_DIR"
+# rm -rf "$BUILD_DIR" "$OUT_DIR"
 mkdir -p "$BUILD_DIR" "$OUT_DIR"
 
 ## Download + Extract ##
-download
+# download
 cd "$BUILD_DIR"
-extract
+# extract
 
 ## Configure ##
 cd "$DIRECTORY"

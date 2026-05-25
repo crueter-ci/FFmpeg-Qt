@@ -14,9 +14,6 @@ ROOTDIR="$PWD"
 case "$(uname -s)" in
 	Linux) : "${PLATFORM:=linux}" ;;
 	Darwin) : "${PLATFORM:=macos}" ;;
-	FreeBSD) : "${PLATFORM:=freebsd}" ;;
-	OpenBSD) : "${PLATFORM:=openbsd}" ;;
-	SunOS) : "${PLATFORM:=solaris}" ;;
 	*) : "${PLATFORM:?-- You must supply the PLATFORM environment variable.}" ;;
 esac
 
@@ -69,7 +66,7 @@ extract() {
 	# FUCK YOU APPLE
 	pushd "$DIRECTORY"
 
-	find . -type f -name "*.c" | while read -r file; do
+	/usr/bin/find . -type f -name "*.c" | while read -r file; do
 		sed 's/if HAVE_UNISTD_H/if HAVE_UNISTD_H || defined(__APPLE__)/' "$file"   > "$file".1
 		sed 's/if HAVE_DIRENT_H/if HAVE_DIRENT_H || defined(__APPLE__)/' "$file".1 > "$file".2
 		mv "$file".2 "$file"

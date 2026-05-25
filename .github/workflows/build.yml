@@ -49,6 +49,7 @@ jobs:
           pkgconf: true
           zstd: true
           nasm: true
+          ffnvcodec: true
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -66,7 +67,7 @@ jobs:
             git make unzip pkgconf diffutils
           pacboy: >-
             toolchain:p pkg-config:p nasm:p cmake:p ninja:p
-            ccache:p vulkan-devel:p
+            ccache:p vulkan-devel:p ffnvcodec-headers:p
 
       - name: Build (MSYS)
         if: matrix.platform == 'mingw'
