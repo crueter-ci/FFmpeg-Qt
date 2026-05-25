@@ -132,7 +132,7 @@ case "$PLATFORM" in
 esac
 
 # TODO: sccache?
-if [ "${CCACHE:-true}" = true ] && command -v ccache >/dev/null 2>&1; then
+if false && [ "${CCACHE:-true}" = true ] && command -v ccache >/dev/null 2>&1; then
 	ccache="$(which ccache)"
 	CC="$ccache $CC"
 	CXX="$ccache $CXX"
