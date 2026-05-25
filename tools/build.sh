@@ -8,6 +8,9 @@ if [ "$PLATFORM" = windows ]; then
 	# shellcheck disable=SC2154
 	TOOLSDIR=$(cygpath -u "$VCToolsInstallDir")
 	export PATH="${TOOLSDIR}/bin/Host${VSCMD_ARG_HOST_ARCH}/${VSCMD_ARG_TGT_ARCH}/:$PATH"
+
+	VULKAN_SDK=$(cygpath -u "${VULKAN_SDK:?}")
+	FFNVCODEC_DIR=$(cygpath -u "${FFNVCODEC_DIR:?}")
 fi
 
 . tools/common.sh
@@ -157,17 +160,12 @@ configure() {
 
 	# vk + nvcodec
 	if need_vk; then
+		# TODO: vulkan/ffnvcodec are not pulled in via pkgconfig properly
 		export PKG_CONFIG_PATH="$FFNVCODEC_DIR/lib/pkgconfig:$VULKAN_SDK/lib/pkgconfig:$PKG_CONFIG_PATH"
-		echo "-- * Package config path: $PKG_CONFIG_PATH"
-
-		printf -- "-- * vulkan pkg-config: "
-		pkg-config --cflags --libs vulkan || true
-		printf -- "-- * ffnvcodec pkg-config: "
-		pkg-config --cflags --libs ffnvcodec || true
 
 		CONFIGURE_FLAGS+=(
 			"${VULKAN_ACCEL[@]}"
-			--extra-cflags="-I$FFNVCODEC_HEADERS_DIR/include")
+			--extra-cflags="-I$FFNVCODEC_DIR/include")
 
 		arm64 || CONFIGURE_FLAGS+=("${NVDEC_ACCEL[@]}")
 	fi
@@ -209,16 +207,16 @@ configure() {
 # TODO: port this to regular ffmpeg build
 build() {
 	if msvc; then
-	# 	# Windows will kill itself if you try to use \\ instead of \\\\ for paths. awesome
-	# 	# remember folks, JUST USE CMAKE. It's really not that hard!
-	# 	# sed -i 's|gsub(/\\\\|gsub(/\\\\\\\\|g' ffbuild/*.mak
-
-	# 	# windows also has a line limit of 8191 characters in the shell
-	# 	# FFmpeg in their infinite wisdom chose to output every single object file in libavcodec at once
-	# 	# in library.mak. So we have to fix their crap again.
+		# For some reason configure tries to make cl.exe the HOSTLD
+		sed -i 's|^HOSTLD=.*|HOSTLD=./compat/windows/mslink|' ffbuild/config.mak
+		sed -i 's|^HOSTLD_O=.*|HOSTLD_O=-out:$@|' ffbuild/config.mak
 
 		# shellcheck disable=SC2016
-		sed -i 's/\$(Q)echo \$\^ > \$@\.objs/\$(file >\$@.objs,$(OBJS) $(STLIBOBJS))/' ffbuild/library.mak
+		sed -i 's/\$(Q)echo \$\^ > \$@\.objs/\$(file >\$@.objs,\$^)/' ffbuild/library.mak
+
+		# backslash greatness
+		sed -i 's/; gsub(\/\\\\\/, "\/"); /; /g' ffbuild/config.mak
+		sed -i 's/; gsub(\/\\\\\/, "\/")/; /g' ffbuild/config.mak
 	fi
 
     echo "-- Building $PRETTY_NAME..."
