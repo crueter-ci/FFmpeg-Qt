@@ -5,6 +5,7 @@
 set -e
 
 if [ "$PLATFORM" = windows ]; then
+	# shellcheck disable=SC2154
 	TOOLSDIR=$(cygpath -u "$VCToolsInstallDir")
 	export PATH="${TOOLSDIR}/bin/Host${VSCMD_ARG_HOST_ARCH}/${VSCMD_ARG_TGT_ARCH}/:$PATH"
 fi
@@ -33,7 +34,7 @@ fi
 
 ## Platform Stuff ##
 
-need_nv() {
+need_vk() {
 	! android && ! macos
 }
 
@@ -64,7 +65,7 @@ fi
 
 . deps/openssl.sh
 if linux; then . deps/libva.sh; fi
-if need_nv; then . deps/nvcodec.sh; fi
+if need_vk; then . deps/nvcodec.sh; fi
 
 VULKAN_ACCEL=(--enable-vulkan --enable-hwaccel={h264,vp9}_vulkan)
 NVDEC_ACCEL=(--enable-cuvid
@@ -128,19 +129,18 @@ case "$PLATFORM" in
 		;;
 esac
 
-# TODO
+# TODO: sccache?
 if [ "${CCACHE:-true}" = true ] && command -v ccache >/dev/null 2>&1; then
-	_ccache="$(which ccache)"
-	CC="$_ccache $CC"
-	CXX="$_ccache $CXX"
+	ccache="$(which ccache)"
+	CC="$ccache $CC"
+	CXX="$ccache $CXX"
 
-	echo "-- Using ccache at ${_ccache}"
+	echo "-- Using ccache at ${ccache}"
 fi
 
 PLATFORM_FLAGS+=(
 	--cc="$CC"
-	--cxx="$CXX"
-)
+	--cxx="$CXX")
 
 ## Build Functions ##
 
@@ -230,7 +230,6 @@ copy_build_artifacts() {
 
 	$MAKE install
 }
-
 
 ## Cleanup ##
 rm -rf "$BUILD_DIR" "$OUT_DIR"
