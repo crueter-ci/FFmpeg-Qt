@@ -4,26 +4,25 @@
 
 set -e
 
-if [ "$PLATFORM" = windows ]; then
-	# gets cl.exe and link.exe into the PATH
-	# shellcheck disable=SC2154
-	CLPATH=$(cygpath -u "$VCToolsInstallDir\\bin\\Host${VSCMD_ARG_HOST_ARCH}\\${VSCMD_ARG_TGT_ARCH}")
+# if [ "$PLATFORM" = windows ]; then
+# 	# gets cl.exe and link.exe into the PATH
+# 	# shellcheck disable=SC2154
+# 	CLPATH=$(cygpath -u "$VCToolsInstallDir\\bin\\Host${VSCMD_ARG_HOST_ARCH}\\${VSCMD_ARG_TGT_ARCH}")
 
-	# also have to implant windows sdk into path
-	# thanks ffmpeg......
-	# shellcheck disable=SC2154
-	SDKPATH=$(cygpath -u "$WindowsSdkVerBinPath/$VSCMD_ARG_HOST_ARCH")
+# 	# also have to implant windows sdk into path
+# 	# shellcheck disable=SC2154
+# 	SDKPATH=$(cygpath -u "$WindowsSdkVerBinPath/$VSCMD_ARG_HOST_ARCH")
 
-	# also add /bin so find exists
-	# local bin for nasm, etc
- 	export PATH="$CLPATH:$SDKPATH:/usr/local/bin:/bin:$PATH:/$MSYSTEM/bin"
+# 	# also add /bin so find exists
+# 	# local bin for nasm, etc
+#  	export PATH="$CLPATH:$SDKPATH:/usr/local/bin:/bin:$PATH:/$MSYSTEM/bin"
 
-	echo "-- MSVC path: $CLPATH"
-	echo "-- SDK path: $SDKPATH"
+# 	echo "-- MSVC path: $CLPATH"
+# 	echo "-- SDK path: $SDKPATH"
 
-	[ -d "$CLPATH" ] || { echo "-- MSVC Path does not exist."; exit 1; }
-	[ -d "$SDKPATH" ] || { echo "-- SDK Path does not exist."; exit 1; }
-fi
+# 	[ -d "$CLPATH" ] || { echo "-- MSVC Path does not exist."; exit 1; }
+# 	[ -d "$SDKPATH" ] || { echo "-- SDK Path does not exist."; exit 1; }
+# fi
 
 . tools/common.sh
 
@@ -49,13 +48,11 @@ fi
 
 ## Platform Stuff ##
 
-need_vk() {
+need_nv() {
 	! android && ! macos
 }
 
 if msvc; then
-	. deps/pkgconf.sh
-	. deps/nasm.sh
 	[ "$ARCH" = amd64 ] || . deps/gas.sh
 
 	printf -- "-- cl: "
@@ -81,9 +78,8 @@ if msvc; then
 fi
 
 . deps/openssl.sh
-! unix  || . deps/libva.sh
-! need_vk || . deps/vulkan.sh
-! need_vk || . deps/nvcodec.sh
+if linux; then . deps/libva.sh; fi
+if need_nv; then . deps/nvcodec.sh; fi
 
 VULKAN_ACCEL=(--enable-vulkan --enable-hwaccel={h264,vp9}_vulkan)
 NVDEC_ACCEL=(--enable-cuvid
@@ -104,18 +100,6 @@ case "$PLATFORM" in
 			"${VAAPI_ACCEL[@]}"
 			--extra-cflags="-Og -g -fno-lto -fno-strict-aliasing -fno-omit-frame-pointer"
         )
-		;;
-	freebsd)
-		PLATFORM_FLAGS=(
-			"${VAAPI_ACCEL[@]}"
-        )
-		;;
-	openbsd)
-		PLATFORM_FLAGS=(
-			--extra-cflags="-I/usr/local/include"
-        )
-		;;
-	solaris)
 		;;
 	android)
 		PLATFORM_FLAGS=(
@@ -178,12 +162,12 @@ PLATFORM_FLAGS+=(
 # cmake
 configure() {
 	echo "-- Configuring $PRETTY_NAME..."
-	
+
 	printf -- "-- * OpenSSL pkgconfig: "
     pkg-config --cflags --libs openssl
 
 	# libva
-	if unix; then
+	if linux; then
 		export PKG_CONFIG_PATH="$LIBVA_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 		printf -- "-- * libva pkg-config: "
 		pkg-config --cflags --libs libva
@@ -191,7 +175,7 @@ configure() {
 
 	# vk + nvcodec
 	if need_vk; then
-		export PKG_CONFIG_PATH="$FFNVCODEC_HEADERS_DIR/lib/pkgconfig:$VULKAN_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
+		export PKG_CONFIG_PATH="$FFNVCODEC_HEADERS_DIR/lib/pkgconfig:$VULKAN_SDK/lib/pkgconfig:$PKG_CONFIG_PATH"
 		printf -- "-- * vulkan pkg-config: "
 		pkg-config --cflags --libs vulkan
 		printf -- "-- * ffnvcodec pkg-config: "
@@ -199,7 +183,7 @@ configure() {
 
 		CONFIGURE_FLAGS+=(
 			"${VULKAN_ACCEL[@]}"
-			--extra-cflags="-I$VULKAN_DIR/include"
+			--extra-cflags="-I$VULKAN_SDK/include"
 			--extra-cflags="-I$FFNVCODEC_HEADERS_DIR/include")
 
 		arm64 || CONFIGURE_FLAGS+=("${NVDEC_ACCEL[@]}")
@@ -235,23 +219,23 @@ configure() {
 
 # TODO: port this to regular ffmpeg build
 build() {
-	if msvc; then
-		# Windows will kill itself if you try to use \\ instead of \\\\ for paths. awesome
-		# remember folks, JUST USE CMAKE. It's really not that hard!
-		# sed -i 's|gsub(/\\\\|gsub(/\\\\\\\\|g' ffbuild/*.mak
+	# if msvc; then
+	# 	# Windows will kill itself if you try to use \\ instead of \\\\ for paths. awesome
+	# 	# remember folks, JUST USE CMAKE. It's really not that hard!
+	# 	# sed -i 's|gsub(/\\\\|gsub(/\\\\\\\\|g' ffbuild/*.mak
 
-		# windows also has a line limit of 8191 characters in the shell
-		# FFmpeg in their infinite wisdom chose to output every single object file in libavcodec at once
-		# in library.mak. So we have to fix their crap again.
+	# 	# windows also has a line limit of 8191 characters in the shell
+	# 	# FFmpeg in their infinite wisdom chose to output every single object file in libavcodec at once
+	# 	# in library.mak. So we have to fix their crap again.
 
-		# shellcheck disable=SC2016
-		sed -i 's/\$(Q)echo \$\^ > \$@\.objs/\$(file >\$@.objs,$(OBJS) $(STLIBOBJS))/' ffbuild/library.mak
-	fi
+	# 	# shellcheck disable=SC2016
+	# 	sed -i 's/\$(Q)echo \$\^ > \$@\.objs/\$(file >\$@.objs,$(OBJS) $(STLIBOBJS))/' ffbuild/library.mak
+	# fi
 
     echo "-- Building $PRETTY_NAME..."
     export CL=" /MP"
 
-	$MAKE -j"$(num_procs)" || ls libavutil/x86/tx_float.o
+	$MAKE -j"$(num_procs)"
 }
 
 ## Packaging ##
@@ -259,15 +243,7 @@ copy_build_artifacts() {
     echo "-- Copying artifacts..."
     mkdir -p "$OUT_DIR"
 
-	if solaris; then
-		mkdir -p "$OUT_DIR"/lib
-		find . -name "*.a" -exec cp {} "$OUT_DIR"/lib \;
-		ls "$OUT_DIR"/lib
-		echo
-	    $MAKE install-headers INSTALL="/usr/bin/install -C"
-	else
-    	$MAKE install
-	fi
+	$MAKE install
 }
 
 

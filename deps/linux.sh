@@ -13,4 +13,5 @@ sudo apt-get install -y \
     ninja-build \
 	libx11-xcb-dev \
 	libxrandr-dev \
-	ninja-build
+	ninja-build \
+	libvulkan-dev

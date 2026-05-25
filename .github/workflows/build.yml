@@ -41,6 +41,15 @@ jobs:
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
           install: binary
 
+      - name: Install dependencies (MSVC)
+        uses: crueter-ci/install-tools@master
+        if: matrix.platform == 'windows'
+        with:
+          vulkan: true
+          pkgconf: true
+          zstd: true
+          nasm: true
+
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
         if: matrix.platform == 'windows'
