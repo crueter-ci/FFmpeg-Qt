@@ -61,6 +61,7 @@ download() {
 	while [ "$TRIES" -le 30 ]; do
 		if curl -L "$DOWNLOAD_URL" -o "$ARTIFACT"; then
 			_end
+			return
 		fi
 
 		TRIES=$((TRIES + 1))
