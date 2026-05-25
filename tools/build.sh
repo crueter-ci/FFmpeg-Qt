@@ -132,7 +132,7 @@ case "$PLATFORM" in
 esac
 
 # TODO: sccache?
-if false && [ "${CCACHE:-true}" = true ] && command -v ccache >/dev/null 2>&1; then
+if [ "${CCACHE:-true}" = true ] && command -v ccache >/dev/null 2>&1; then
 	ccache="$(which ccache)"
 	CC="$ccache $CC"
 	CXX="$ccache $CXX"
@@ -223,8 +223,6 @@ build() {
 		sed -i 's/; gsub(\/\\\\\/, "\/"); /; /g' ffbuild/config.mak
 		sed -i 's/; gsub(\/\\\\\/, "\/")/; /g' ffbuild/config.mak
 	fi
-
-    export CL=" /MP"
 
 	$MAKE -j"$(num_procs)"
 	_end
