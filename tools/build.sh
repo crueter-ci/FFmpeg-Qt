@@ -167,7 +167,6 @@ configure() {
 
 		CONFIGURE_FLAGS+=(
 			"${VULKAN_ACCEL[@]}"
-			--extra-cflags="-I$VULKAN_SDK/include"
 			--extra-cflags="-I$FFNVCODEC_HEADERS_DIR/include")
 
 		arm64 || CONFIGURE_FLAGS+=("${NVDEC_ACCEL[@]}")
