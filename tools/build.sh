@@ -4,25 +4,10 @@
 
 set -e
 
-# if [ "$PLATFORM" = windows ]; then
-# 	# gets cl.exe and link.exe into the PATH
-# 	# shellcheck disable=SC2154
-# 	CLPATH=$(cygpath -u "$VCToolsInstallDir\\bin\\Host${VSCMD_ARG_HOST_ARCH}\\${VSCMD_ARG_TGT_ARCH}")
-
-# 	# also have to implant windows sdk into path
-# 	# shellcheck disable=SC2154
-# 	SDKPATH=$(cygpath -u "$WindowsSdkVerBinPath/$VSCMD_ARG_HOST_ARCH")
-
-# 	# also add /bin so find exists
-# 	# local bin for nasm, etc
-#  	export PATH="$CLPATH:$SDKPATH:/usr/local/bin:/bin:$PATH:/$MSYSTEM/bin"
-
-# 	echo "-- MSVC path: $CLPATH"
-# 	echo "-- SDK path: $SDKPATH"
-
-# 	[ -d "$CLPATH" ] || { echo "-- MSVC Path does not exist."; exit 1; }
-# 	[ -d "$SDKPATH" ] || { echo "-- SDK Path does not exist."; exit 1; }
-# fi
+if [ "$PLATFORM" = windows ]; then
+	TOOLSDIR=$(cygpath -u "$VCToolsInstallDir")
+	export PATH="${TOOLSDIR}/bin/Host${VSCMD_ARG_HOST_ARCH}/${VSCMD_ARG_TGT_ARCH}/:$PATH"
+fi
 
 . tools/common.sh
 
