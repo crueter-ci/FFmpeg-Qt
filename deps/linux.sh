@@ -16,3 +16,10 @@ sudo apt-get install -y \
 	ninja-build \
 	libvulkan-dev \
 	libffmpeg-nvenc-dev
+
+# THANK YOU UBUNTU
+git clone https://github.com/KhronosGroup/Vulkan-Headers.git
+cd Vulkan-Headers
+
+cmake -S . -B build
+sudo cmake --install build --prefix /usr
