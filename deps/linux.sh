@@ -14,5 +14,4 @@ sudo apt-get install -y \
 	libx11-xcb-dev \
 	libxrandr-dev \
 	ninja-build \
-	libvulkan-dev \
-	vulkan-loader
+	libvulkan-dev

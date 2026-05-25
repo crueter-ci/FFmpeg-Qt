@@ -66,7 +66,7 @@ jobs:
             git make unzip pkgconf diffutils
           pacboy: >-
             toolchain:p pkg-config:p nasm:p cmake:p ninja:p
-            ccache:p
+            ccache:p vulkan-devel:p
 
       - name: Build (MSYS)
         if: matrix.platform == 'mingw'

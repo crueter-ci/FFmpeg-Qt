@@ -161,8 +161,8 @@ configure() {
 	# vk + nvcodec
 	if need_vk; then
 		export PKG_CONFIG_PATH="$FFNVCODEC_HEADERS_DIR/lib/pkgconfig:$VULKAN_SDK/lib/pkgconfig:$PKG_CONFIG_PATH"
-		printf -- "-- * vulkan pkg-config: "
-		pkg-config --cflags --libs vulkan
+		# printf -- "-- * vulkan pkg-config: "
+		# pkg-config --cflags --libs vulkan
 		printf -- "-- * ffnvcodec pkg-config: "
 		pkg-config --cflags --libs ffnvcodec
 
