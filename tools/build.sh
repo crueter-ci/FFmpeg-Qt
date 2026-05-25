@@ -42,6 +42,7 @@ need_vk() {
 }
 
 if msvc; then
+	_group "MSVC Setup"
 	[ "$ARCH" = amd64 ] || . deps/gas.sh
 
 	printf -- "-- cl: "
@@ -64,6 +65,7 @@ if msvc; then
 
 	printf -- "-- ninja: "
 	command -v ninja
+	_end
 fi
 
 . deps/openssl.sh
@@ -146,7 +148,7 @@ PLATFORM_FLAGS+=(
 
 # cmake
 configure() {
-	echo "-- Configuring $PRETTY_NAME..."
+	_group "Configuring $PRETTY_NAME"
 
 	printf -- "-- * OpenSSL pkgconfig: "
     pkg-config --cflags --libs openssl
@@ -195,17 +197,20 @@ configure() {
 	echo "-- * Configure flags: ${CONFIGURE_FLAGS[*]}"
 
 	if windows; then
-		cfg="$(cygpath -w $PWD/ffbuild/config.log)"
+		cfg="$(cygpath -w "$PWD"/ffbuild/config.log)"
 	else
 		cfg="$PWD/ffbuild/config.log"
 	fi
 
 	echo "CONFIG_LOG=$cfg" >> "$GITHUB_ENV"
 	./configure "${CONFIGURE_FLAGS[@]}" --prefix="$OUT_DIR"
+
+	_end
 }
 
 # TODO: port this to regular ffmpeg build
 build() {
+	_group "Building $PRETTY_NAME"
 	if msvc; then
 		# For some reason configure tries to make cl.exe the HOSTLD
 		sed -i 's|^HOSTLD=.*|HOSTLD=./compat/windows/mslink|' ffbuild/config.mak
@@ -219,18 +224,19 @@ build() {
 		sed -i 's/; gsub(\/\\\\\/, "\/")/; /g' ffbuild/config.mak
 	fi
 
-    echo "-- Building $PRETTY_NAME..."
     export CL=" /MP"
 
 	$MAKE -j"$(num_procs)"
+	_end
 }
 
 ## Packaging ##
 copy_build_artifacts() {
-    echo "-- Copying artifacts..."
+    _group "Copying artifacts"
     mkdir -p "$OUT_DIR"
 
 	$MAKE install
+	_end
 }
 
 ## Cleanup ##
