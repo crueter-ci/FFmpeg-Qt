@@ -32,10 +32,10 @@ jobs:
         shell: ${{ matrix.platform == 'mingw' && 'msys2 {0}' || 'bash' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup ccache
-        uses: crueter/ccache-action@master
+        uses: hendrikmuhs/ccache-action@v1.2.23
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
@@ -53,7 +53,7 @@ jobs:
           gas-preprocessor: true
 
       - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: Eden-CI/msvc-dev-cmd@master
         if: matrix.platform == 'windows'
         with:
           arch: ${{ matrix.os.arch }}
@@ -106,7 +106,7 @@ jobs:
       ARCH: ${{ matrix.arch }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup ccache
         uses: crueter/ccache-action@master
@@ -156,7 +156,7 @@ jobs:
       PLATFORM: linux
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup ccache
         uses: crueter/ccache-action@master
@@ -195,7 +195,7 @@ jobs:
       ARCH: universal
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
 
