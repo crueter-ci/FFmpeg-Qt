@@ -7,79 +7,90 @@ env:
   CCACHE: true
 
 jobs:
-  # windows:
-  #   name: "${{ matrix.platform }} (${{ matrix.os.arch }})"
-  #   runs-on: ${{ matrix.os.runs-on }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       os:
-  #         - runs-on: windows-latest
-  #           arch: amd64
-  #           msystem: mingw64
+  windows:
+    name: "${{ matrix.platform }} (${{ matrix.os.arch }})"
+    runs-on: ${{ matrix.os.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - runs-on: windows-latest
+            arch: amd64
+            msystem: mingw64
 
-  #         - runs-on: windows-11-arm
-  #           arch: arm64
-  #           msystem: clangarm64
-  #       platform: [windows, mingw]
+          - runs-on: windows-11-arm
+            arch: arm64
+            msystem: clangarm64
+        platform: [windows, mingw]
 
-  #   env:
-  #     ARCH: ${{ matrix.os.arch }}
-  #     PLATFORM: ${{ matrix.platform }}
+    env:
+      ARCH: ${{ matrix.os.arch }}
+      PLATFORM: ${{ matrix.platform }}
 
-  #   defaults:
-  #     run:
-  #       shell: ${{ matrix.platform == 'mingw' && 'msys2 {0}' || 'bash' }}
+    defaults:
+      run:
+        shell: ${{ matrix.platform == 'mingw' && 'msys2 {0}' || 'bash' }}
 
-  #   steps:
-  #     - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Setup ccache
-  #       uses: crueter/ccache-action@marge
-  #       with:
-  #         key: ${{ env.PLATFORM }}-${{ env.ARCH }}
-  #         restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+      - name: Setup ccache
+        uses: crueter/ccache-action@master
+        with:
+          key: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          install: binary
 
-  #     - name: Setup MSVC
-  #       uses: ilammy/msvc-dev-cmd@v1
-  #       if: matrix.platform == 'windows'
-  #       with:
-  #         arch: ${{ matrix.os.arch }}
+      - name: Install dependencies (MSVC)
+        uses: crueter-ci/install-tools@master
+        if: matrix.platform == 'windows'
+        with:
+          vulkan: true
+          pkgconf: true
+          zstd: true
+          nasm: true
+          ffnvcodec: true
+          gas-preprocessor: true
 
-  #     - name: Install CMake
-  #       uses: lukka/get-cmake@latest
-  #       id: cmake
-  #       if: matrix.platform == 'windows'
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        if: matrix.platform == 'windows'
+        with:
+          arch: ${{ matrix.os.arch }}
 
-  #     - name: Setup MSYS2 environment
-  #       uses: msys2/setup-msys2@v2
-  #       if: matrix.platform == 'mingw'
-  #       with:
-  #         msystem: ${{ matrix.os.msystem }}
-  #         update: true
-  #         install: >-
-  #           git make unzip pkgconf diffutils
-  #         pacboy: >-
-  #           toolchain:p pkg-config:p nasm:p cmake:p ninja:p
-  #           ccache:p
+      - name: Setup MSYS2 environment
+        uses: msys2/setup-msys2@v2
+        if: matrix.platform == 'mingw'
+        with:
+          msystem: ${{ matrix.os.msystem }}
+          update: true
+          install: >-
+            git make unzip pkgconf diffutils
+          pacboy: >-
+            toolchain:p pkg-config:p nasm:p cmake:p ninja:p
+            ccache:p vulkan-devel:p ffnvcodec-headers:p
 
-  #     - name: Build (MSYS)
-  #       if: matrix.platform == 'mingw'
-  #       run: ./tools/build.sh
+      - name: Build (MSYS)
+        if: matrix.platform == 'mingw'
+        run: ./tools/build.sh
 
-  #     - name: Build (MSVC)
-  #       if: matrix.platform == 'windows'
-  #       shell: bash
-  #       run: |
-  #         ROOTDIR="$PWD"
-  #         . ./deps/zstd.sh
-  #         PLATFORM=windows ARCH=${{ matrix.os.arch }} ./tools/build.sh
+      - name: Build (MSVC)
+        if: matrix.platform == 'windows'
+        shell: bash
+        run: PLATFORM=windows ARCH=${{ matrix.os.arch }} ./tools/build.sh
 
-  #     - name: Upload Artifacts
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: ${{ matrix.platform }}-${{ env.ARCH }}
-  #         path: artifacts/*
+      - name: Upload config.log on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.platform }}-${{ matrix.os.arch }}-config
+          path: ${{ env.CONFIG_LOG }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.platform }}-${{ env.ARCH }}
+          path: artifacts/*
 
   android:
     name: "Android (${{ matrix.arch }})"
@@ -98,10 +109,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup ccache
-        uses: crueter/ccache-action@marge
+        uses: crueter/ccache-action@master
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          install: binary
 
       - name: Install deps
         if: matrix.arch == 'x86_64'
@@ -113,8 +125,15 @@ jobs:
           chmod a+x ./tools/build.sh
           ./tools/build.sh
 
+      - name: Upload config.log on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.PLATFORM }}-${{ env.ARCH }}-config
+          path: ${{ env.CONFIG_LOG }}
+
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-${{ matrix.arch }}
           path: artifacts/*
@@ -140,10 +159,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup ccache
-        uses: crueter/ccache-action@marge
+        uses: crueter/ccache-action@master
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          install: binary
 
       - name: Deps
         run: ./deps/linux.sh
@@ -151,8 +171,15 @@ jobs:
       - name: Build
         run: ./tools/build.sh
 
+      - name: Upload config.log on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.PLATFORM }}-${{ env.ARCH }}-config
+          path: ${{ env.CONFIG_LOG }}
+
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.arch }}
           path: artifacts/*
@@ -173,10 +200,11 @@ jobs:
           submodules: recursive
 
       - name: Setup ccache
-        uses: crueter/ccache-action@marge
+        uses: crueter/ccache-action@master
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          install: binary
 
       - name: Get Dependencies
         run: |
@@ -188,8 +216,15 @@ jobs:
           chmod a+x ./tools/build.sh
           ./tools/build.sh
 
+      - name: Upload config.log on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.PLATFORM }}-${{ env.ARCH }}-config
+          path: ${{ env.CONFIG_LOG }}
+
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-universal
           path: artifacts/*

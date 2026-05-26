@@ -33,39 +33,36 @@ need_vk() {
 }
 
 if msvc; then
-	. deps/pkgconf.sh
-	. deps/nasm.sh
-	[ "$ARCH" = amd64 ] || . deps/gas.sh
+	_group "MSVC Setup"
 
-	# gets cl.exe and link.exe into the PATH
-	# shellcheck disable=SC2154
-	CLPATH=$(cygpath -u "$VCToolsInstallDir\\bin\\Host${VSCMD_ARG_HOST_ARCH}\\${VSCMD_ARG_TGT_ARCH}")
+	VULKAN_SDK=$(cygpath -u "${VULKAN_SDK:?}")
+	FFNVCODEC_DIR=$(cygpath -u "${FFNVCODEC_DIR:?}")
 
-	# also add /bin so find exists
- 	export PATH="$CLPATH:/bin:$PATH"
-
-	echo "MSVC path: $CLPATH"
-
-	printf "cl: "
+	printf -- "-- cl: "
 	command -v cl
 
-	printf "link: "
+	printf -- "-- mt: "
+	command -v mt
+
+	printf -- "-- rc: "
+	command -v rc
+
+	printf -- "-- link: "
 	command -v link
 
-	printf "pkg-config: "
+	printf -- "-- pkg-config: "
 	command -v pkg-config
 
-	printf "cmake: "
+	printf -- "-- cmake: "
 	command -v cmake
 
-	printf "ninja: "
+	printf -- "-- ninja: "
 	command -v ninja
+	_end
 fi
 
 . deps/openssl.sh
-! unix  || . deps/libva.sh
-! need_vk || . deps/vulkan.sh
-! need_vk || . deps/nvcodec.sh
+if linux; then . deps/libva.sh; fi
 
 VULKAN_ACCEL=(--enable-vulkan --enable-hwaccel={h264,vp9}_vulkan)
 NVDEC_ACCEL=(--enable-cuvid
@@ -86,18 +83,6 @@ case "$PLATFORM" in
 			"${VAAPI_ACCEL[@]}"
 			--extra-cflags="-Og -g -fno-lto -fno-strict-aliasing -fno-omit-frame-pointer"
         )
-		;;
-	freebsd)
-		PLATFORM_FLAGS=(
-			"${VAAPI_ACCEL[@]}"
-        )
-		;;
-	openbsd)
-		PLATFORM_FLAGS=(
-			--extra-cflags="-I/usr/local/include"
-        )
-		;;
-	solaris)
 		;;
 	android)
 		PLATFORM_FLAGS=(
@@ -128,10 +113,7 @@ case "$PLATFORM" in
 			--toolchain=msvc
 			--arch="$ARCH"
 			--target-os=win64
-			--extra-cflags="-I\"$VULKAN_SDK/include\""
 		)
-
-		PLATFORM_FLAGS+=(--extra-cflags="-I\"$FFNVCODEC_DIR/include\"")
 		;;
 	mingw)
 		PLATFORM_FLAGS=(
@@ -141,52 +123,57 @@ case "$PLATFORM" in
 		;;
 esac
 
-# TODO
-if [ "${CCACHE:-true}" = true ] && command -v ccache >/dev/null 2>&1; then
-	CC="ccache $CC"
-	CXX="ccache $CXX"
+# TODO: sccache?
+if ! msvc && [ "${CCACHE:-true}" = true ] && command -v ccache >/dev/null 2>&1; then
+	ccache="$(which ccache)"
+	CC="$ccache $CC"
+	CXX="$ccache $CXX"
+
+	echo "-- Using ccache at ${ccache}"
 fi
 
-PLATFORM_FLAGS+=(
-	--cc="$CC"
-	--cxx="$CXX"
-)
+PLATFORM_FLAGS+=(--cc="$CC" --cxx="$CXX")
 
-## Build Functions ##
-
-# cmake
-configure() {
-	echo "-- Configuring $PRETTY_NAME..."
+checks() {
+	_group "pkg-config checks"
 
 	printf -- "-- * OpenSSL pkgconfig: "
     pkg-config --cflags --libs openssl
 
+	if need_vk; then
+		export PKG_CONFIG_PATH="$FFNVCODEC_DIR/lib/pkgconfig:$VULKAN_SDK/lib/pkgconfig:$PKG_CONFIG_PATH"
+
+	    echo "-- * Package config path: $PKG_CONFIG_PATH"
+
+		printf -- "-- * vulkan pkg-config: "
+		pkg-config --cflags --libs vulkan
+		printf -- "-- * ffnvcodec pkg-config: "
+		pkg-config --cflags --libs ffnvcodec
+	fi
+
 	# libva
-	if unix; then
+	if linux; then
 		export PKG_CONFIG_PATH="$LIBVA_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 		printf -- "-- * libva pkg-config: "
 		pkg-config --cflags --libs libva
 	fi
 
+	_end
+}
+
+## Build Functions ##
+
+# cmake
+configure() {
+	_group "Configuring $PRETTY_NAME"
+
 	# vk + nvcodec
 	if need_vk; then
-		export PKG_CONFIG_PATH="$FFNVCODEC_HEADERS_DIR/lib/pkgconfig:$VULKAN_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
-		printf -- "-- * vulkan pkg-config: "
-		pkg-config --cflags --libs vulkan
-		printf -- "-- * ffnvcodec pkg-config: "
-		pkg-config --cflags --libs ffnvcodec
-
-		CONFIGURE_FLAGS+=(
-			"${VULKAN_ACCEL[@]}"
-			--extra-cflags="-I$VULKAN_DIR/include"
-			--extra-cflags="-I$FFNVCODEC_HEADERS_DIR/include")
+		CONFIGURE_FLAGS+=("${VULKAN_ACCEL[@]}")
 
 		arm64 || CONFIGURE_FLAGS+=("${NVDEC_ACCEL[@]}")
 	fi
 
-    echo "-- * Package config path: $PKG_CONFIG_PATH"
-
-	# Please stop using assembly.
 	if android && amd64; then
 		CONFIGURE_FLAGS+=(--disable-asm)
 	fi
@@ -209,46 +196,47 @@ configure() {
 
 	echo "-- * Configure flags: ${CONFIGURE_FLAGS[*]}"
 
+	if windows; then
+		cfg="$(cygpath -w "$PWD"/ffbuild/config.log)"
+	else
+		cfg="$PWD/ffbuild/config.log"
+	fi
+
+	echo "CONFIG_LOG=$cfg" >> "$GITHUB_ENV"
 	./configure "${CONFIGURE_FLAGS[@]}" --prefix="$OUT_DIR"
+
+	_end
 }
 
 # TODO: port this to regular ffmpeg build
 build() {
+	_group "Building $PRETTY_NAME"
 	if msvc; then
-		# Windows will kill itself if you try to use \\ instead of \\\\ for paths. awesome
-		# remember folks, JUST USE CMAKE. It's really not that hard!
-		sed -i 's|gsub(/\\\\|gsub(/\\\\\\\\|g' ffbuild/*.mak
-
-		# windows also has a line limit of 8191 characters in the shell
-		# FFmpeg in their infinite wisdom chose to output every single object file in libavcodec at once
-		# in library.mak. So we have to fix their crap again.
-
 		# shellcheck disable=SC2016
-		sed -i 's/\$(Q)echo \$\^ > \$@\.objs/\$(file >\$@.objs,$(OBJS) $(STLIBOBJS))/' ffbuild/library.mak
+		sed -i 's/\$(Q)echo \$\^ > \$@\.objs/\$(file >\$@.objs,\$^)/' ffbuild/library.mak
+
+		# backslash greatness
+		sed -i 's/; gsub(\/\\\\\/, "\/"); /; /g' ffbuild/config.mak
+		sed -i 's/; gsub(\/\\\\\/, "\/")/; /g' ffbuild/config.mak
 	fi
 
-    echo "-- Building $PRETTY_NAME..."
-    export CL=" /MP"
+	export CL=" /MP"
 
 	$MAKE -j"$(num_procs)"
+	_end
 }
 
 ## Packaging ##
 copy_build_artifacts() {
-    echo "-- Copying artifacts..."
+    _group "Copying artifacts"
     mkdir -p "$OUT_DIR"
 
-	if solaris; then
-		mkdir -p "$OUT_DIR"/lib
-		find . -name "*.a" -exec cp {} "$OUT_DIR"/lib \;
-		ls "$OUT_DIR"/lib
-		echo
-	    $MAKE install-headers INSTALL="/usr/bin/install -C"
-	else
-    	$MAKE install
-	fi
+	$MAKE install
+	_end
 }
 
+## Initial Checks ##
+checks
 
 ## Cleanup ##
 rm -rf "$BUILD_DIR" "$OUT_DIR"

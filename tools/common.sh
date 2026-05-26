@@ -5,6 +5,20 @@
 # shellcheck disable=SC1091
 . ./tools/vars.sh
 
+_group() {
+    if [ -n "$GITHUB_RUN_ID" ]; then
+		echo "##[group]$*"
+	else
+		echo "======= $* ======="
+	fi
+}
+
+_end() {
+	if [ -n "$GITHUB_RUN_ID" ]; then
+		echo "##[endgroup]"
+	fi
+}
+
 # TODO: autodetect platform
 # but make android manual specification
 ROOTDIR="$PWD"
@@ -14,9 +28,6 @@ ROOTDIR="$PWD"
 case "$(uname -s)" in
 	Linux) : "${PLATFORM:=linux}" ;;
 	Darwin) : "${PLATFORM:=macos}" ;;
-	FreeBSD) : "${PLATFORM:=freebsd}" ;;
-	OpenBSD) : "${PLATFORM:=openbsd}" ;;
-	SunOS) : "${PLATFORM:=solaris}" ;;
 	*) : "${PLATFORM:?-- You must supply the PLATFORM environment variable.}" ;;
 esac
 
@@ -28,7 +39,7 @@ must_install() {
 	done
 }
 
-must_install curl zstd
+must_install curl zstd cmake ninja git
 
 case "$ARTIFACT" in
 	*.zip) must_install unzip ;;
@@ -41,23 +52,31 @@ esac
 
 # download
 download() {
+	_group "Downloading"
 	TRIES=0
 	[ -f "$ARTIFACT" ] && return
 
+	echo "URL: $DOWNLOAD_URL"
+
 	while [ "$TRIES" -le 30 ]; do
-		curl -L "$DOWNLOAD_URL" -o "$ARTIFACT" && return
+		if curl -L "$DOWNLOAD_URL" -o "$ARTIFACT"; then
+			_end
+			return
+		fi
+
 		TRIES=$((TRIES + 1))
 		echo "-- Download failed, trying again in 5 seconds..."
 		sleep 5
 	done
 
 	echo "-- Download failed after 30 tries, aborting"
+	_end
 	exit 1
 }
 
 # extract the archive + apply patches
 extract() {
-	echo "-- Extracting $PRETTY_NAME $VERSION"
+	_group "Extracting $PRETTY_NAME $VERSION"
 	rm -fr "$DIRECTORY"
 
 	case "$ARTIFACT" in
@@ -69,13 +88,15 @@ extract() {
 	# FUCK YOU APPLE
 	pushd "$DIRECTORY"
 
-	find . -type f -name "*.c" | while read -r file; do
+	/usr/bin/find . -type f -name "*.c" | while read -r file; do
 		sed 's/if HAVE_UNISTD_H/if HAVE_UNISTD_H || defined(__APPLE__)/' "$file"   > "$file".1
 		sed 's/if HAVE_DIRENT_H/if HAVE_DIRENT_H || defined(__APPLE__)/' "$file".1 > "$file".2
 		mv "$file".2 "$file"
 	done
 
 	popd
+
+	_end
 }
 
 # generate sha1, 256, and 512 sums for a file
@@ -107,7 +128,7 @@ num_procs() {
 
 ## Packaging ##
 package() {
-    echo "-- Packaging..."
+    _group "Packaging"
     mkdir -p "$ROOTDIR/artifacts"
 
 	TARBALL=$FILENAME-$PLATFORM-$ARCH-$VERSION.tar
@@ -120,8 +141,8 @@ package() {
     rm "$TARBALL"
 
     sums "$TARBALL.zst"
+	_end
 }
-
 
 ## Platform Stuff ##
 
@@ -166,6 +187,9 @@ case "$PLATFORM" in
 		LIB_PREFIX=""
 		CC=cl
 		CXX=cl
+
+		# The built-in windows tar is SLOOOOOOOOOOOOOOOOOOOW
+		TAR=/bin/tar
 		;;
 	mingw)
 		SHARED_SUFFIX=dll
@@ -225,24 +249,6 @@ mingw() {
 
 windows() {
 	msvc || mingw
-}
-
-openbsd() {
-	[ "$PLATFORM" = openbsd ]
-}
-
-freebsd() {
-	[ "$PLATFORM" = freebsd ]
-}
-
-solaris() {
-	[ "$PLATFORM" = solaris ]
-}
-
-# get me a unix with no macOS
-# "UNIX with no macOS? Ay Tony, get me a pizza with nuthin'!"
-unix() {
-	linux || freebsd || openbsd || solaris
 }
 
 android() {
