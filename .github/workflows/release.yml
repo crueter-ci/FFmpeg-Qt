@@ -41,5 +41,7 @@ jobs:
             android-*/*.tar.zst*
             macos-*/*.tar.zst*
             linux-*/*.tar.zst*
+            windows-*/*.tar.zst*
+            mingw-*/*.tar.zst*
 
           make_latest: true
