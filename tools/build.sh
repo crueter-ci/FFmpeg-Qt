@@ -61,7 +61,7 @@ if msvc; then
 	_end
 fi
 
-. deps/openssl.sh
+macos || . deps/openssl.sh
 if linux; then . deps/libva.sh; fi
 
 VULKAN_ACCEL=(--enable-vulkan --enable-hwaccel={h264,vp9}_vulkan)
@@ -137,8 +137,10 @@ PLATFORM_FLAGS+=(--cc="$CC" --cxx="$CXX")
 checks() {
 	_group "pkg-config checks"
 
-	printf -- "-- * OpenSSL pkgconfig: "
-    pkg-config --cflags --libs openssl
+	if ! macos; then
+		printf -- "-- * OpenSSL pkgconfig: "
+		pkg-config --cflags --libs openssl
+	fi
 
 	if need_vk; then
 		export PKG_CONFIG_PATH="$FFNVCODEC_DIR/lib/pkgconfig:$VULKAN_SDK/lib/pkgconfig:$PKG_CONFIG_PATH"
@@ -178,13 +180,18 @@ configure() {
 		CONFIGURE_FLAGS+=(--disable-asm)
 	fi
 
+	if macos; then
+		CONFIGURE_FLAGS+=(--enable-securetransport)
+	else
+		CONFIGURE_FLAGS+=(--enable-openssl)
+	fi
+
 	# shellcheck disable=SC2054
 	CONFIGURE_FLAGS+=(
         --disable-doc
         --disable-programs
         --enable-swresample
 		--enable-network
-		--enable-openssl
 		--enable-static
 		--disable-shared
 		--enable-pic
