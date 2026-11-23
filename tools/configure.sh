@@ -276,7 +276,7 @@ configure() {
 
 	export CL=" /MP"
 	if [ -n "$GITHUB_ENV" ]; then
-		echo "CL=/ /MP" >> "$GITHUB_ENV"
+		echo "CL= /MP" >> "$GITHUB_ENV"
 	fi
 
 	if windows; then
