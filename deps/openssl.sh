@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-_version=3.6.0-1cb0d36b39
+_version=4.0.1-1795399509-b64f68a94e
 _repo=OpenSSL-Qt
 _name=openssl
 _TAR=tar
