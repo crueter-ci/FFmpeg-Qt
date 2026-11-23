@@ -6,7 +6,7 @@ _name=openssl
 _TAR=tar
 _dir="$ROOTDIR/$_name-$PLATFORM-$ARCH-$_version"
 
-_download="https://github.com/crueter-ci/$_repo/releases/download/v$_version/$_name-$PLATFORM-$ARCH-$_version.tar.zst"
+_download="https://github.com/crueter-ci/$_repo/releases/download/$_version/$_name-$PLATFORM-$ARCH-$_version.tar.zst"
 _artifact="$_name-$PLATFORM-$ARCH-$_version.tar.zst"
 
 if [ ! -d "$_dir" ]; then

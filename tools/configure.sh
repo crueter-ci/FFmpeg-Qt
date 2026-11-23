@@ -123,17 +123,13 @@ flags() {
 	CXX=g++
 
 	# main flags
-	off avdevice avformat doc everything ffmpeg ffprobe network
-	on static filter=yadif,scale small pic swresample
-
-	for codec in h264 vp8 vp9 opus; do
-		on decoder="$codec"
-	done
+	off doc programs shared
+	on static small pic swresample
 
 	echo "--prefix=$OUT_DIR"
 	echo "--pkg-config-flags=--static"
-	on protocol=file,http,https,tcp,udp,rtp
 	on network
+	on protocol=file,http,https,tcp,udp,rtp
 
 	# Vulkan + nvdec
 	if linux || windows; then
@@ -144,7 +140,6 @@ flags() {
 	# VAAPI
 	if linux; then
 		vaapi
-		echo "--extra-cflags=-Og -g -fno-lto -fno-strict-aliasing -fno-omit-frame-pointer"
 	fi
 
 	# DirectX
