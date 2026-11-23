@@ -1,10 +1,19 @@
 build
 out
 artifacts
-/*.tar.gz
+/*.tar.*
 /*.zip
 changelog.md
 /ffmpeg-kit*
+/openssl*
+
+# TODO: add back libdrm stuff
+/libdrm
+/libva
+/vulkan
+/ffnvcodec-headers
+/zstd
+/pkgconf*
 
 *.exe
 nv-codec-headers

@@ -8,6 +8,10 @@ set -e
 
 OUT_DIR="$PWD/out"
 
+# fetch dependencies (openssl / libva)
+macos || . deps/openssl.sh
+if linux; then . deps/libva.sh; fi
+
 cd "$DIRECTORY"
 
 if android; then
@@ -131,6 +135,9 @@ flags() {
 	done
 
 	echo "--prefix=$OUT_DIR"
+	echo "--pkg-config-flags=--static"
+	on protocol=file,http,https,tcp,udp,rtp
+	on network
 
 	# Vulkan + nvdec
 	if linux || windows; then
@@ -141,6 +148,7 @@ flags() {
 	# VAAPI
 	if linux; then
 		vaapi
+		echo "--extra-cflags=-Og -g -fno-lto -fno-strict-aliasing -fno-omit-frame-pointer"
 	fi
 
 	# DirectX
@@ -215,6 +223,13 @@ flags() {
 		CXX=clang++
 	fi
 
+	# crypto
+	if macos; then
+		on securetransport
+	else
+		on openssl
+	fi
+
 	# sccache
 	if [ -n "$SCCACHE_PATH" ]; then
 		if windows; then
@@ -251,9 +266,26 @@ configure() {
 	./configure "$@"
 
 	if msvc; then
+		# shellcheck disable=SC2016
+		sed -i 's/\$(Q)echo \$\^ > \$@\.objs/\$(file >\$@.objs,$^)/' ffbuild/library.mak
+
 		# backslash greatness
 		sed -i 's/; gsub(\/\\\\\/, "\/"); /; /g' ffbuild/config.mak
-		sed -i 's/; gsub(\/\\\\\/, "\/")/; /g' ffbuild/config.mak
+		sed -i 's/; gsub(\/\\\\\/, "\")/; /g' ffbuild/config.mak
+	fi
+
+	export CL=" /MP"
+	if [ -n "$GITHUB_ENV" ]; then
+		echo "CL=/ /MP" >> "$GITHUB_ENV"
+	fi
+
+	if windows; then
+		cfg="$(cygpath -w "$PWD"/ffbuild/config.log)"
+	else
+		cfg="$PWD/ffbuild/config.log"
+	fi
+	if [ -n "$GITHUB_ENV" ]; then
+		echo "CONFIG_LOG=$cfg" >> "$GITHUB_ENV"
 	fi
 
 	_end

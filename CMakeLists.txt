@@ -5,8 +5,19 @@ set(FFmpeg_PATH "${CMAKE_CURRENT_LIST_DIR}" PARENT_SCOPE)
 set(FFMPEG_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include)
 set(FFMPEG_LIB_DIR ${CMAKE_CURRENT_LIST_DIR}/lib)
 
-set(LIB_TYPE STATIC)
-set(LIB_SUFFIX a)
+if (APPLE)
+    set(SHARED_SUFFIX dylib)
+else()
+    set(SHARED_SUFFIX so)
+endif()
+
+if (BUILD_SHARED_LIBS)
+    set(LIB_TYPE SHARED)
+    set(LIB_SUFFIX ${SHARED_SUFFIX})
+else()
+    set(LIB_TYPE STATIC)
+    set(LIB_SUFFIX a)
+endif()
 
 # utility lib that links to everything
 add_library(ffmpeg INTERFACE)
@@ -23,12 +34,29 @@ foreach (LIB swscale avcodec swresample avfilter avutil)
 
     if (MSVC)
         set(libname ${LIB}.lib)
+    elseif (MINGW)
+        set(libname lib${LIB}.a)
     else()
         set(libname lib${LIB}.${LIB_SUFFIX})
     endif()
 
-    set_target_properties(${LIB} PROPERTIES
-        IMPORTED_LOCATION ${FFMPEG_LIB_DIR}/${libname})
+    if (BUILD_SHARED_LIBS)
+        if (WIN32)
+            set(FFMPEG_LIB_DIR ${CMAKE_CURRENT_LIST_DIR}/bin)
+            set_target_properties(${LIB} PROPERTIES
+                IMPORTED_LOCATION ${FFMPEG_LIB_DIR}/${LIB}.dll
+                IMPORTED_IMPLIB ${FFMPEG_LIB_DIR}/${LIB}.lib
+            )
+        else()
+            set_target_properties(${LIB} PROPERTIES
+                IMPORTED_LOCATION ${FFMPEG_LIB_DIR}/lib${LIB}.${LIB_SUFFIX}
+            )
+        endif()
+    else()
+        set_target_properties(${LIB} PROPERTIES
+            IMPORTED_LOCATION ${FFMPEG_LIB_DIR}/${libname}
+        )
+    endif()
 
     if (WIN32)
         target_link_libraries(${LIB} INTERFACE bcrypt)
