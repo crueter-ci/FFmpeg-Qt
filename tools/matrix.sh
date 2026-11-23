@@ -24,11 +24,6 @@ done
 add ubuntu-latest amd64 linux "ghcr.io/pkgforge-dev/archlinux:latest"
 add ubuntu-24.04-arm aarch64 linux "ghcr.io/pkgforge-dev/archlinux:latest"
 
-# android
-for arch in amd64 aarch64; do
-    add ubuntu-latest "$arch" android
-done
-
 # apple
 add macos-latest aarch64 macos
 
