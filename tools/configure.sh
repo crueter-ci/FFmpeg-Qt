@@ -20,10 +20,6 @@ if android; then
 	android_paths
 fi
 
-# patch for gamemode
-patch="https://git.eden-emu.dev/eden-emu/eden/raw/commit/ac86f96efadeac4cea0b335cffe3324f95051800/.patch/ffmpeg/0001-steamdeck.patch"
-curl -sSfL "$patch" | patch -Np1
-
 # MSVC
 if msvc; then
 	_group "MSVC Setup"
