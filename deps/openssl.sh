@@ -35,7 +35,11 @@ if [ ! -f "$_dir"/lib/pkgconfig/openssl.pc ]; then
 	exit 1
 fi
 
-export PKG_CONFIG_PATH="$_dir/lib/pkgconfig:$PKG_CONFIG_PATH"
+if [ -z "$PKG_CONFIG_PATH" ]; then
+	export PKG_CONFIG_PATH="$_dir/lib/pkgconfig"
+else
+	export PKG_CONFIG_PATH="$_dir/lib/pkgconfig:$PKG_CONFIG_PATH"
+fi
 echo "PKG CONFIG PATH: $PKG_CONFIG_PATH"
 pkg-config --cflags --libs openssl
 

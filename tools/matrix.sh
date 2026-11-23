@@ -31,6 +31,5 @@ done
 
 # apple
 add macos-latest aarch64 macos
-add macos-latest aarch64 ios
 
 echo ']'

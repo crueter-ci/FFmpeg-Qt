@@ -157,13 +157,6 @@ jobs:
         run: ${{ env.MAKE }} -j8
         working-directory: ${{ env.DIRECTORY }}
 
-      - name: Upload config.log on failure
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ matrix.platform }}-${{ matrix.arch }}-config
-          path: ${{ env.CONFIG_LOG }}
-
       - name: Package
         run: bash ./tools/package.sh
 
